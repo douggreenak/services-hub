@@ -37,10 +37,10 @@ exports.start = async function () {
 };
 
 const services = () => [
-  { id: 'tv-manager', name: 'TV Manager', url: `http://{host}:${P.tvm}`, login: { mode: 'cookie', headers: { 'X-Requested-With': 'tvm' } } },
-  { id: 'jellyfin-fleet', name: 'Jellyfin Fleet', url: `http://{host}:${P.fleet}`, login: { mode: 'token', username: 'admin' } },
-  { id: 'mockc', name: 'Mock cookie', url: `http://{host}:${P.mockc}`, login: { mode: 'cookie' } },
-  { id: 'mockp', name: 'Mock checklist', url: `http://{host}:${P.mockp}`, login: { mode: 'cookie', path: '/api/auth/login', passwordField: 'passcode' } }, // shaped like the Bethel checklist
+  { id: 'tv-manager', name: 'TV Manager', controlled: true, url: `http://{host}:${P.tvm}`, login: { mode: 'cookie', headers: { 'X-Requested-With': 'tvm' } } },
+  { id: 'jellyfin-fleet', name: 'Jellyfin Fleet', controlled: true, url: `http://{host}:${P.fleet}`, login: { mode: 'token', username: 'admin' } },
+  { id: 'mockc', name: 'Mock cookie', controlled: true, url: `http://{host}:${P.mockc}`, login: { mode: 'cookie' } },
+  { id: 'mockp', name: 'Mock checklist', controlled: true, url: `http://{host}:${P.mockp}`, login: { mode: 'cookie', path: '/api/auth/login', passwordField: 'passcode' } }, // shaped like the Bethel checklist
   { id: 'plain', name: 'Plain', url: `http://{host}:${P.plain}`, login: { mode: 'none' } },
   { id: 'down', name: 'Down', url: `http://{host}:${P.down}`, login: { mode: 'cookie' } },
 ];

@@ -146,12 +146,14 @@ for (const h of HOSTS) for (const s of SVCS) test.describe(`${h} · ${s}`, () =>
 
 test.describe('plain service (no login) and unreachable service', () => {
   for (const h of HOSTS) {
-    test(`${h}: card Open goes straight there; direct visit untouched`, { timeout: 40000 }, async () => {
+    test(`${h}: a site that is not one of our apps opens in a new tab; direct visit untouched`, { timeout: 40000 }, async () => {
       const ctx = await fresh(h), page = await ctx.newPage();
       await hubSignIn(ctx, h); await page.goto(svcO(h, 'plain') + '/'); await settle(page, 'plain', 'svc-in');
       await page.goto(hubO(h) + '/'); await settle(page, 'plain', 'hub-home');
-      await page.locator('.card', { hasText: 'Plain' }).getByText('Open', { exact: true }).click();
-      await page.waitForLoadState(); assert.equal(await page.locator('#state').textContent(), 'PLAIN'); assert.equal(ctx.pages().length, 1, 'opened in the same tab'); await ctx.close();
+      // not one of our apps (no View button): opens in a NEW tab and leaves the hub where it is
+      const [pop] = await Promise.all([ctx.waitForEvent('page'), page.locator('.card', { hasText: 'Plain' }).getByText('Open', { exact: true }).click()]);
+      await pop.waitForLoadState(); assert.equal(await pop.locator('#state').textContent(), 'PLAIN');
+      assert.equal(ctx.pages().length, 2, 'opened in a new tab'); assert.ok(page.url().startsWith(hubO(h)), 'hub tab stays on the hub'); await ctx.close();
     });
     test(`${h}: service is down -> clear message with a way out`, { timeout: 40000 }, async () => {
       const ctx = await fresh(h), page = await ctx.newPage(); await hubSignIn(ctx, h);
@@ -220,6 +222,15 @@ test.describe('hub itself', () => {
     assert.equal((await api(ctx, h, 'GET', '/api/services')).status, 401, 'signed-out stays signed out after a restart');
     assert.ok(!fs.existsSync(stack.hubDir() + '/sessions.json'), 'vault key removed with the last session');
     await hubSignIn(ctx, h); assert.equal((await api(ctx, h, 'GET', '/api/services')).status, 200); await ctx.close();
+  });
+  test('cards: apps with a View button open in the same tab, other sites in a new tab', async () => {
+    await stack.freshHub(); const ctx = await newCtx(h), page = await ctx.newPage(); await hubSignIn(ctx, h);
+    await page.goto(hubO(h) + '/'); await settle(page, 'x', 'hub-home');
+    for (const c of await page.locator('.card').all()) {
+      const ours = (await c.getByText('View', { exact: true }).count()) > 0;
+      for (const l of await c.locator('a[href^="/go/"]').all()) assert.equal(await l.getAttribute('target'), ours ? null : '_blank', (await c.locator('h3').innerText()) + (ours ? ' (ours)' : ' (other)'));
+    }
+    await ctx.close();
   });
   test('QR button opens a code for the hub apps page (sits beside the theme and sign-out buttons)', async () => {
     await stack.freshHub(); const ctx = await newCtx(h), page = await ctx.newPage(); await hubSignIn(ctx, h);
