@@ -165,6 +165,23 @@ test.describe('plain service (no login) and unreachable service', () => {
   }
 });
 
+test.describe('TV Manager top bar', () => {
+  for (const [label, vp] of [['desktop', { width: 1280, height: 700 }], ['tablet', { width: 900, height: 700 }], ['phone', { width: 390, height: 760 }]])
+    test(`Apps button sits in the top bar next to sign out (${label})`, { timeout: 40000 }, async () => {
+      await stack.freshHub(); const ctx = await browser.newContext({ viewport: vp }), page = await ctx.newPage();
+      await page.goto(svcO('localhost', 'tvm') + '/?nosso'); await page.fill('#pw', CREDS.tvm.password); await page.keyboard.press('Enter');
+      await page.waitForSelector('.topbar .apps-pill');
+      const bar = await page.locator('.topbar').boundingBox(), apps = await page.locator('.topbar .apps-pill').boundingBox(), out = await page.locator('.topbar [aria-label="Sign out"]').boundingBox();
+      assert.ok(apps.y >= bar.y && apps.y + apps.height <= bar.y + bar.height, 'Apps button is inside the top bar');
+      assert.ok(apps.x + apps.width <= out.x + 1, 'Apps is to the left of Sign out');
+      assert.ok(out.x + out.width <= vp.width, 'nothing cut off at the right edge');
+      assert.equal(await page.locator('.nav .nav-extra, .nav .appslink').count(), 0, 'no duplicate Apps / Sign out in the side or bottom bar');
+      assert.match(await page.locator('.topbar .apps-pill').getAttribute('href'), /:8090\/apps$/);
+      assert.equal(await page.locator('.topbar .apps-pill .lbl').isVisible(), vp.width >= 840, 'label shown on wide screens, icon only on phones');
+      await ctx.close();
+    });
+});
+
 test.describe('hub itself', () => {
   const h = 'localhost';
   const hit = (p, o = {}) => fetch(hubO(h) + p, { redirect: 'manual', ...o });
