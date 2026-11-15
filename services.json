@@ -17,7 +17,12 @@
     "controlled": true,
     "dir": "/home/jellyfin/jellyfin",
     "notes": "Docker container jellyfin-admin",
-    "icon": "/icons/jellyfin-fleet.svg"
+    "icon": "/icons/jellyfin-fleet.svg",
+    "login": {
+      "mode": "token",
+      "path": "",
+      "username": "jellyfin"
+    }
   },
   {
     "id": "audio-flow",
@@ -37,7 +42,15 @@
     "controlled": true,
     "dir": "/home/jellyfin/tv-adb-manager",
     "notes": "python3 -m tvmanager",
-    "icon": "/icons/tv-manager.svg"
+    "icon": "/icons/tv-manager.svg",
+    "login": {
+      "mode": "cookie",
+      "path": "",
+      "username": "",
+      "headers": {
+        "X-Requested-With": "tvm"
+      }
+    }
   },
   {
     "id": "brightsign",
@@ -58,5 +71,21 @@
     "dir": "/home/jellyfin/.config/spotify-signage",
     "notes": "",
     "icon": "/icons/icecast.svg"
+  },
+  {
+    "id": "bethel-checklist",
+    "name": "Bethel Tech Checklist",
+    "description": "Weekly church tech team checklist",
+    "url": "http://{host}:8091",
+    "controlled": true,
+    "dir": "/home/jellyfin/Bethel-Tech-Checklist",
+    "notes": "systemd: bethel-checklist (Postgres in Docker: checklist-db)",
+    "icon": "/icons/bethel-checklist.svg",
+    "login": {
+      "mode": "cookie",
+      "path": "/api/auth/login",
+      "username": "",
+      "passwordField": "passcode"
+    }
   }
 ]

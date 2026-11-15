@@ -33,7 +33,7 @@
   --ok:#9bd5a4;--ok-c:#00531d;--bad:#ffb4ab;--bad-c:#690005;--on-bad-c:#ffdad6;}
 :root{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
 @media(prefers-color-scheme:dark){:root:not([data-theme=light]){color-scheme:dark}}
-*{box-sizing:border-box}
+*{box-sizing:border-box}[hidden]{display:none!important}
 body{margin:0;background:var(--surface);color:var(--on-surface);font:400 16px/1.5 var(--font);-webkit-font-smoothing:antialiased}
 main{max-width:1040px;margin:0 auto;padding:28px 20px 120px}
 a{color:inherit}
@@ -50,7 +50,7 @@ a{color:inherit}
   background:var(--surf-high);color:var(--primary);transition:border-radius .35s var(--spring),transform .35s var(--spring),background .2s,box-shadow .2s}
 .btn:hover{border-radius:14px;background:var(--surf-top)}
 .btn:active{border-radius:10px;transform:scale(.95)}
-.btn:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--primary);outline-offset:2px}
+.btn:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid var(--primary);outline-offset:2px}
 .btn.fill{background:var(--primary);color:var(--on-primary)}.btn.fill:hover{box-shadow:0 2px 10px #0004}
 .btn.tonal{background:var(--secondary-c);color:var(--on-secondary-c)}
 .btn.text{background:transparent;color:var(--primary);padding:0 14px}.btn.text:hover{background:var(--surf-top)}
@@ -62,6 +62,26 @@ a{color:inherit}
 .plus{font-size:26px;font-weight:400;line-height:1}
 .theme{position:fixed;top:16px;right:16px;z-index:6;width:48px;height:48px;padding:0;border-radius:24px;background:var(--surf-high);color:var(--on-surface);box-shadow:0 2px 8px #0003}
 .theme svg{width:22px;height:22px;fill:currentColor}
+.theme.lo{right:76px}
+.theme[hidden]{display:none}
+.authcard{max-width:420px;margin:12vh auto 0;background:var(--surf);border-radius:40px;padding:36px 28px;text-align:center}
+.authcard img{width:72px;height:72px;border-radius:50%}
+.authcard h1{margin:14px 0 4px;font-size:32px;font-weight:800;letter-spacing:-.02em}
+.authcard p{margin:0 0 18px;color:var(--on-var);font-size:14px}
+.authcard .field{text-align:left}
+.authcard .btn{width:100%;margin-top:18px}
+/* Expressive background for the sign-in screen: drifting, morphing tonal shapes */
+.authbg{position:fixed;inset:0;overflow:hidden;z-index:0;pointer-events:none}
+main{position:relative;z-index:1}
+.shp{position:absolute;opacity:.85;animation:drift var(--d,66s) ease-in-out infinite alternate,morph2 var(--m,42s) ease-in-out infinite alternate}
+.shp.a{width:78vmin;height:78vmin;left:-24vmin;top:-22vmin;background:var(--primary-c);--d:78s;--m:48s}
+.shp.b{width:58vmin;height:58vmin;right:-20vmin;top:-6vmin;background:var(--tertiary-c);--d:60s;--m:36s;animation-delay:-4s}
+.shp.c{width:84vmin;height:84vmin;right:-16vmin;bottom:-40vmin;background:var(--secondary-c);--d:84s;--m:54s;animation-delay:-9s}
+.shp.g{width:56vmin;height:56vmin;left:-14vmin;bottom:-26vmin;background:var(--primary-c);opacity:.6;border-radius:24%;--d:90s;animation-name:drift,spin;animation-duration:90s,180s;animation-timing-function:ease-in-out,linear;animation-iteration-count:infinite;animation-direction:alternate,reverse}
+@keyframes drift{from{transform:translate(0,0) rotate(0deg) scale(1)}to{transform:translate(5vmin,7vmin) rotate(18deg) scale(1.08)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes morph2{0%{border-radius:50%}25%{border-radius:62% 38% 46% 54%/55% 41% 59% 45%}50%{border-radius:30% 70% 62% 38%/48% 56% 44% 52%}75%{border-radius:45% 55% 30% 70%/60% 35% 65% 40%}100%{border-radius:38% 62% 55% 45%/42% 58% 42% 58%}}
+@media(prefers-reduced-motion:reduce){.shp{animation:none!important}}
 /* Sections */
 .sec{margin:34px 4px 14px;font-size:22px;font-weight:700;letter-spacing:-.005em;display:flex;align-items:center;gap:10px}
 .sec small{font:600 13px var(--font);color:var(--on-var);background:var(--surf-high);border-radius:10px;padding:2px 10px}
@@ -101,8 +121,10 @@ dialog::backdrop{background:#0006;backdrop-filter:blur(3px)}@keyframes dlg{from{
 dialog h3{margin:0 0 6px;font-size:26px;font-weight:700}
 .field{display:block;position:relative;margin-top:14px}
 .field span{position:absolute;left:16px;top:-9px;padding:0 6px;font-size:12px;font-weight:600;color:var(--primary);background:var(--surf-high);border-radius:6px}
-input[type=text],textarea{width:100%;font:inherit;padding:16px;border-radius:16px;border:2px solid var(--outline);background:transparent;color:var(--on-surface);transition:border-color .2s,border-radius .3s var(--spring)}
-input[type=text]:focus,textarea:focus{outline:0;border-color:var(--primary);border-radius:24px}
+select{width:100%;font:inherit;padding:16px;border-radius:16px;border:2px solid var(--outline);background:transparent;color:var(--on-surface)}
+select option{background:var(--surf-high);color:var(--on-surface)}
+input[type=password],input[type=text],textarea{width:100%;font:inherit;padding:16px;border-radius:16px;border:2px solid var(--outline);background:transparent;color:var(--on-surface);transition:border-color .2s,border-radius .3s var(--spring)}
+input[type=password]:focus,input[type=text]:focus,textarea:focus,select:focus{outline:0;border-color:var(--primary);border-radius:24px}
 .hint{font-size:12px;color:var(--on-var);margin:4px 8px 0}
 .switch{display:flex;align-items:center;gap:14px;margin-top:18px;cursor:pointer;font-size:15px}
 .switch input{appearance:none;width:52px;height:32px;border-radius:16px;border:2px solid var(--outline);background:var(--surf-top);position:relative;cursor:pointer;flex:none;transition:background .25s,border-color .25s}
@@ -114,6 +136,7 @@ input[type=text]:focus,textarea:focus{outline:0;border-color:var(--primary);bord
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 @media(max-width:560px){.hero{padding:26px 20px;border-radius:32px}.fab span.lbl{display:none}.fab{padding:0 20px}}
 </style></head><body><main id="app"></main>
+<button class="btn theme lo" id="logout" aria-label="Sign out" title="Sign out" hidden><svg viewBox="0 0 24 24"><path d="M10 4H5v16h5v-2H7V6h3zm5.6 3.6L14.2 9l2 2H9v2h7.2l-2 2 1.400 1.400L20 12z"/></svg></button>
 <button class="btn theme" id="theme" aria-label="Toggle light/dark mode" title="Toggle light/dark mode"></button>
 <button class="btn fab" id="add"><span class="plus">+</span><span class="lbl">Add site</span></button>
 <dialog id="dlg"><form id="form" method="dialog">
@@ -123,6 +146,12 @@ input[type=text]:focus,textarea:focus{outline:0;border-color:var(--primary);bord
 <div class="hint">Use <code>{host}</code> for this machine's address.</div>
 <label class="field"><span>Description</span><input type="text" id="f-desc"></label>
 <label class="field"><span>Icon URL (optional)</span><input type="text" id="f-icon" placeholder="/icons/my-site.svg"></label>
+<label class="field"><span>Auto-login</span><select id="f-lmode"><option value="none">None</option><option value="cookie">Password only (session cookie)</option><option value="token">Username + password (token)</option></select></label>
+<div id="lbox" hidden>
+<label class="field" id="lu"><span>Login username</span><input type="text" id="f-luser" autocomplete="off"></label>
+<label class="field"><span>Login password</span><input type="password" id="f-lpass" autocomplete="new-password" placeholder="Leave blank to keep the saved one"></label>
+<label class="field"><span>Login path (optional)</span><input type="text" id="f-lpath" placeholder="/api/login"></label>
+<div class="hint">Stored encrypted on the hub. Clicking Open signs you in automatically.</div></div>
 <label class="field"><span>Project directory</span><input type="text" id="f-dir"></label>
 <label class="field"><span>Notes</span><textarea id="f-notes" rows="3"></textarea></label>
 <label class="switch"><input type="checkbox" id="f-ctl"><div>We control this service<div class="hint" style="margin:0">Shows an Apps button on the card</div></div></label>
@@ -136,8 +165,28 @@ const href=u=>u.replace('{host}',location.hostname);
 let services=[], editing=null;
 async function api(method,url,body){
   const r=await fetch(url,{method,headers:{'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});
-  const j=await r.json(); if(!r.ok) throw new Error(j.error||'Request failed'); return j;
+  const j=await r.json(); if(r.status===401&&!url.startsWith('/api/auth/')){showAuth();throw new Error('login required');}
+  if(!r.ok) throw new Error(j.error||'Request failed'); return j;
 }
+const LOGO='<img src="/icons/hub.svg" alt="">';
+const BG='<div class="authbg" aria-hidden="true"><div class="shp a"></div><div class="shp b"></div><div class="shp c"></div><div class="shp g"></div></div>';
+async function showAuth(){
+  const st=await api('GET','/api/auth/status'), setup=st.setup;
+  $('#add').hidden=true; $('#logout').hidden=true; services=[]; lastKey=null;
+  if(!document.querySelector('.authbg')) document.body.insertAdjacentHTML('afterbegin',BG);
+  app.innerHTML=`<form class="authcard" id="authform">${LOGO}<h1>Services Hub</h1>
+  <p>${setup?'Create a password. You will sign in once here and the hub signs you in to the other services.':'Sign in once to open every service.'}</p>
+  <label class="field"><span>${setup?'New password (4+ characters)':'Password'}</span><input type="password" id="a-pw" autocomplete="${setup?'new-password':'current-password'}" required autofocus></label>
+  ${setup?'<label class="field"><span>Confirm password</span><input type="password" id="a-pw2" autocomplete="new-password" required></label>':''}
+  <div class="errmsg" id="a-err"></div><button class="btn fill">${setup?'Create password':'Sign in'}</button></form>`;
+  $('#authform').onsubmit=async e=>{
+    e.preventDefault();
+    if(setup&&$('#a-pw').value!==$('#a-pw2').value){$('#a-err').textContent='Passwords do not match';return;}
+    try{await api('POST',setup?'/api/auth/setup':'/api/auth/login',{password:$('#a-pw').value}); if(nextUrl()) return location.replace(nextUrl()); load().then(openFromQuery);}
+    catch(x){$('#a-err').textContent=x.message;}
+  };
+}
+$('#logout').onclick=async()=>{await api('POST','/api/auth/logout'); showAuth();};
 let lastKey=null;
 const keyOf=l=>JSON.stringify(l.map(({up,...x})=>x));
 function patchStatus(){
@@ -146,7 +195,9 @@ function patchStatus(){
   const c=$('#upcount'); if(c) c.textContent=services.filter(s=>s.up).length+' running';
 }
 async function load(){
-  const data=await api('GET','/api/services'), k=keyOf(data);
+  let data; try{data=await api('GET','/api/services');}catch(e){if(e.message==='login required')return; throw e;}
+  $('#add').hidden=false; $('#logout').hidden=false; document.querySelector('.authbg')?.remove();
+  const k=keyOf(data);
   services=data;
   // Same content as before: update status badges in place, no re-render (no flash)
   if(k===lastKey){ patchStatus(); return; }
@@ -157,9 +208,9 @@ const badge=s=>`<span class="badge ${s.up?'up':''}" data-badge="${esc(s.id)}"><i
 const avatar=s=>{const h=hash(s);return `<div class="avatar t${h%3}"><span>${esc(s.name.trim().charAt(0).toUpperCase())}</span>${s.icon?`<img src="${esc(href(s.icon))}" alt="" onerror="this.remove()">`:''}</div>`};
 function card(s,i){
   return `<div class="card" style="animation-delay:${i*45}ms"><div class="head">${avatar(s)}<div>
-  <h3><a href="${esc(href(s.url))}" target="_blank" rel="noopener">${esc(s.name)}</a></h3>${badge(s)}</div></div>
+  <h3><a href="/go/${esc(s.id)}" target="_blank" rel="noopener">${esc(s.name)}</a></h3>${badge(s)}</div></div>
   <div class="desc">${esc(s.description)}</div><div class="url">${esc(href(s.url))}</div>
-  <div class="actions"><a class="btn fill sm" href="${esc(href(s.url))}" target="_blank" rel="noopener">Open</a>
+  <div class="actions"><a class="btn fill sm" href="/go/${esc(s.id)}" target="_blank" rel="noopener">Open</a>
   ${s.controlled?`<a class="btn text sm" href="/apps/${esc(s.id)}">View</a>`:''}<span class="sp"></span>
   <button class="btn text sm quiet" data-edit="${esc(s.id)}">Edit</button></div></div>`;
 }
@@ -179,7 +230,7 @@ function detail(id){
   <dl class="facts" style="margin-inline:0"><div class="fact"><dt>URL</dt><dd><a href="${esc(href(s.url))}" target="_blank" rel="noopener">${esc(href(s.url))}</a></dd></div>
   <div class="fact"><dt>Directory</dt><dd>${s.dir?`<code>${esc(s.dir)}</code>`:'—'}</dd></div>
   <div class="fact"><dt>Notes</dt><dd>${s.notes?esc(s.notes).replace(/\n/g,'<br>'):'—'}</dd></div></dl>
-  <div class="actions"><a class="btn fill" href="${esc(href(s.url))}" target="_blank" rel="noopener">Open ${esc(s.name)}</a><button class="btn" data-edit="${esc(s.id)}">Edit</button></div></div>`;
+  <div class="actions"><a class="btn fill" href="/go/${esc(s.id)}" target="_blank" rel="noopener">Open ${esc(s.name)}</a><button class="btn" data-edit="${esc(s.id)}">Edit</button></div></div>`;
   bindEdit();
 }
 function bindEdit(){app.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>openDlg(services.find(s=>s.id===b.dataset.edit)))}
@@ -187,14 +238,16 @@ function route(){ const m=location.pathname.match(/^\/apps\/([\w-]+)/); m?detail
 function openDlg(s){
   editing=s; $('#dtitle').textContent=s?'Edit site':'Add site'; $('#err').textContent='';
   $('#f-name').value=s?.name||''; $('#f-url').value=s?.url||''; $('#f-desc').value=s?.description||'';
-  $('#f-dir').value=s?.dir||''; $('#f-icon').value=s?.icon||''; $('#f-notes').value=s?.notes||''; $('#f-ctl').checked=!!s?.controlled;
+  $('#f-dir').value=s?.dir||''; const L=s?.login||{}; $('#f-lmode').value=L.mode||'none'; $('#f-luser').value=L.username||''; $('#f-lpass').value=''; $('#f-lpath').value=L.path||''; $('#f-lpass').placeholder=L.hasPassword?'Saved. Leave blank to keep it':'Password'; lbox(); $('#f-icon').value=s?.icon||''; $('#f-notes').value=s?.notes||''; $('#f-ctl').checked=!!s?.controlled;
   $('#del').style.display=s?'':'none'; dlg.showModal();
 }
+function lbox(){const m=$('#f-lmode').value; $('#lbox').hidden=m==='none'; $('#lu').hidden=m!=='token'; $('#f-lpath').placeholder=m==='token'?'/api/v1/admin/auth/login':'/api/login';}
+$('#f-lmode').onchange=lbox;
 $('#add').onclick=()=>openDlg(null);
 $('#cancel').onclick=()=>dlg.close();
 $('#form').onsubmit=async e=>{
   e.preventDefault();
-  const b={name:$('#f-name').value,url:$('#f-url').value,description:$('#f-desc').value,dir:$('#f-dir').value,icon:$('#f-icon').value,notes:$('#f-notes').value,controlled:$('#f-ctl').checked};
+  const b={name:$('#f-name').value,url:$('#f-url').value,description:$('#f-desc').value,dir:$('#f-dir').value,login:{mode:$('#f-lmode').value,username:$('#f-luser').value,path:$('#f-lpath').value,password:$('#f-lpass').value},icon:$('#f-icon').value,notes:$('#f-notes').value,controlled:$('#f-ctl').checked};
   try{ editing?await api('PUT','/api/services/'+editing.id,b):await api('POST','/api/services',b); dlg.close(); load(); }
   catch(x){ $('#err').textContent=x.message; }
 };
@@ -220,5 +273,10 @@ $('#theme').onclick=()=>{
   applyTheme();
 };
 mq.addEventListener('change',applyTheme); applyTheme();
-addEventListener('popstate',route); load(); setInterval(()=>{if(!dlg.open)load()},15000);
+addEventListener('popstate',route);
+const qp=new URLSearchParams(location.search);
+const nextUrl=()=>{const n=qp.get('next'); return n&&/^\/go\/[\w-]+(\?sso=1)?$/.test(n)?n:null}; // same-site /go paths only
+api('GET','/api/auth/status').then(st=>{ if(st.authed&&nextUrl()) return location.replace(nextUrl()); return st.authed?load().then(openFromQuery):showAuth(); });
+function openFromQuery(){const e=qp.get('edit'); if(e){const s=services.find(x=>x.id===e); if(s) openDlg(s); history.replaceState(null,'','/');}}
+setInterval(()=>{if(!dlg.open&&!$('#authform'))load()},15000);
 </script></body></html>
