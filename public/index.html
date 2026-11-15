@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#6750a4">
+<title>Services Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,300..900&display=swap" rel="stylesheet">
+<style>
+/* Material 3 Expressive: tonal color roles, big shapes, springy motion */
+:root{
+  --primary:#6750a4;--on-primary:#fff;--primary-c:#e9ddff;--on-primary-c:#22005d;
+  --secondary-c:#e8def8;--on-secondary-c:#1d192b;
+  --tertiary-c:#ffd8e4;--on-tertiary-c:#31101d;
+  --surface:#fef7ff;--surf-low:#f7f2fa;--surf:#f3edf7;--surf-high:#ece6f0;--surf-top:#e6e0e9;
+  --on-surface:#1d1b20;--on-var:#49454f;--outline:#79747e;--outline-v:#cac4d0;
+  --ok:#146c2e;--ok-c:#b7f1c0;--bad:#ba1a1a;--bad-c:#ffdad6;--on-bad-c:#410002;
+  --spring:cubic-bezier(.34,1.56,.64,1);--emph:cubic-bezier(.2,0,0,1);
+  --font:"Roboto Flex",system-ui,sans-serif;
+}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){
+  --primary:#cfbcff;--on-primary:#381e72;--primary-c:#4f378b;--on-primary-c:#e9ddff;
+  --secondary-c:#4a4458;--on-secondary-c:#e8def8;
+  --tertiary-c:#633b48;--on-tertiary-c:#ffd8e4;
+  --surface:#141218;--surf-low:#1d1b20;--surf:#211f26;--surf-high:#2b2930;--surf-top:#36343b;
+  --on-surface:#e6e0e9;--on-var:#cac4d0;--outline:#938f99;--outline-v:#49454f;
+  --ok:#9bd5a4;--ok-c:#00531d;--bad:#ffb4ab;--bad-c:#690005;--on-bad-c:#ffdad6;}}
+:root[data-theme=dark]{
+  --primary:#cfbcff;--on-primary:#381e72;--primary-c:#4f378b;--on-primary-c:#e9ddff;
+  --secondary-c:#4a4458;--on-secondary-c:#e8def8;
+  --tertiary-c:#633b48;--on-tertiary-c:#ffd8e4;
+  --surface:#141218;--surf-low:#1d1b20;--surf:#211f26;--surf-high:#2b2930;--surf-top:#36343b;
+  --on-surface:#e6e0e9;--on-var:#cac4d0;--outline:#938f99;--outline-v:#49454f;
+  --ok:#9bd5a4;--ok-c:#00531d;--bad:#ffb4ab;--bad-c:#690005;--on-bad-c:#ffdad6;}
+:root{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--surface);color:var(--on-surface);font:400 16px/1.5 var(--font);-webkit-font-smoothing:antialiased}
+main{max-width:1040px;margin:0 auto;padding:28px 20px 120px}
+a{color:inherit}
+/* Hero */
+.hero{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:8px 0 28px;padding:32px 28px;border-radius:40px;background:var(--primary-c);color:var(--on-primary-c);position:relative;overflow:hidden}
+.hero:after{content:"";position:absolute;right:-60px;top:-70px;width:220px;height:220px;background:var(--tertiary-c);opacity:.7;border-radius:50%}
+.hero>*{position:relative;z-index:1}
+.hero h1{margin:0;font-size:clamp(36px,7vw,60px);line-height:1.02;font-weight:800;letter-spacing:-.02em;font-variation-settings:"wdth" 110}
+.hero p{margin:6px 0 0;font-size:16px;opacity:.85}
+.hero .count{display:inline-flex;gap:6px;margin-top:14px;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 14px;border-radius:12px;background:var(--surface);color:var(--on-surface);font-size:13px;font-weight:600}
+/* Buttons */
+.btn{font:600 14px var(--font);letter-spacing:.01em;height:48px;padding:0 24px;border:0;border-radius:24px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  background:var(--surf-high);color:var(--primary);transition:border-radius .35s var(--spring),transform .35s var(--spring),background .2s,box-shadow .2s}
+.btn:hover{border-radius:14px;background:var(--surf-top)}
+.btn:active{border-radius:10px;transform:scale(.95)}
+.btn:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--primary);outline-offset:2px}
+.btn.fill{background:var(--primary);color:var(--on-primary)}.btn.fill:hover{box-shadow:0 2px 10px #0004}
+.btn.tonal{background:var(--secondary-c);color:var(--on-secondary-c)}
+.btn.sm{height:40px;padding:0 18px;border-radius:20px}
+.btn.err{background:var(--bad-c);color:var(--on-bad-c)}
+.fab{position:fixed;right:24px;bottom:24px;height:64px;padding:0 28px 0 22px;border-radius:24px;font-size:16px;background:var(--tertiary-c);color:var(--on-tertiary-c);box-shadow:0 4px 14px #0004;z-index:5}
+.fab:hover{background:var(--tertiary-c);filter:brightness(.96);border-radius:32px}
+.plus{font-size:26px;font-weight:400;line-height:1}
+.theme{position:fixed;top:16px;right:16px;z-index:6;width:48px;height:48px;padding:0;border-radius:24px;background:var(--surf-high);color:var(--on-surface);box-shadow:0 2px 8px #0003}
+.theme svg{width:22px;height:22px;fill:currentColor}
+/* Sections */
+.sec{margin:34px 4px 14px;font-size:22px;font-weight:700;letter-spacing:-.005em;display:flex;align-items:center;gap:10px}
+.sec small{font:600 13px var(--font);color:var(--on-var);background:var(--surf-high);border-radius:10px;padding:2px 10px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px}
+/* Cards */
+.rendered .card{animation:none}
+.card{background:var(--surf);border-radius:28px;padding:20px;display:flex;flex-direction:column;gap:14px;transition:transform .45s var(--spring),background .2s;animation:pop .55s var(--spring) backwards}
+.card:hover{background:var(--surf-high);transform:translateY(-4px)}
+@keyframes pop{from{opacity:0;transform:scale(.88) translateY(14px)}}
+.head{display:flex;gap:14px;align-items:center}
+.avatar{width:56px;height:56px;flex:none;display:grid;place-items:center;font-size:24px;font-weight:800;background:var(--primary-c);color:var(--on-primary-c);transition:border-radius .4s var(--emph)}
+.avatar{border-radius:50%}
+.card:hover .avatar,.detail .avatar{border-radius:12px}
+.t1{background:var(--secondary-c);color:var(--on-secondary-c)}.t2{background:var(--tertiary-c);color:var(--on-tertiary-c)}
+.head h3{margin:0;font-size:19px;font-weight:700;line-height:1.2}
+.head h3 a{text-decoration:none}.head h3 a:hover{text-decoration:underline}
+.badge{display:inline-flex;align-items:center;gap:6px;margin-top:4px;font-size:12px;font-weight:600;height:24px;padding:0 10px;border-radius:8px;background:var(--bad-c);color:var(--on-bad-c)}
+.badge.up{background:var(--ok-c);color:var(--ok)}
+.badge i{width:7px;height:7px;border-radius:50%;background:currentColor}
+.badge.up i{animation:pulse 2s infinite}@keyframes pulse{50%{opacity:.35;transform:scale(1.5)}}
+.desc{color:var(--on-var);font-size:14px;flex:1}.url{font-size:12px;color:var(--outline);word-break:break-all}
+.actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.sp{flex:1}
+.iconb{width:40px;height:40px;padding:0}
+/* Detail */
+.back{display:inline-flex;margin-bottom:14px}
+.detail{background:var(--surf);border-radius:40px;padding:28px}
+.detail h1{margin:0 0 4px;font-size:clamp(30px,6vw,48px);font-weight:800;letter-spacing:-.02em;line-height:1.05}
+.facts{display:grid;gap:10px;margin:22px 0}
+.fact{background:var(--surf-low);border-radius:20px;padding:14px 18px}
+.fact dt{font-size:12px;font-weight:600;color:var(--on-var);text-transform:uppercase;letter-spacing:.08em}
+.fact dd{margin:2px 0 0;word-break:break-word}
+code{background:var(--surf-high);padding:2px 8px;border-radius:8px;font-size:13px}
+/* Dialog */
+dialog{border:0;border-radius:36px;background:var(--surf-high);color:var(--on-surface);width:min(500px,94vw);padding:28px;animation:dlg .45s var(--spring)}
+dialog::backdrop{background:#0006;backdrop-filter:blur(3px)}@keyframes dlg{from{opacity:0;transform:scale(.85)}}
+dialog h3{margin:0 0 6px;font-size:26px;font-weight:700}
+.field{display:block;position:relative;margin-top:14px}
+.field span{position:absolute;left:16px;top:-9px;padding:0 6px;font-size:12px;font-weight:600;color:var(--primary);background:var(--surf-high);border-radius:6px}
+input[type=text],textarea{width:100%;font:inherit;padding:16px;border-radius:16px;border:2px solid var(--outline);background:transparent;color:var(--on-surface);transition:border-color .2s,border-radius .3s var(--spring)}
+input[type=text]:focus,textarea:focus{outline:0;border-color:var(--primary);border-radius:24px}
+.hint{font-size:12px;color:var(--on-var);margin:4px 8px 0}
+.switch{display:flex;align-items:center;gap:14px;margin-top:18px;cursor:pointer;font-size:15px}
+.switch input{appearance:none;width:52px;height:32px;border-radius:16px;border:2px solid var(--outline);background:var(--surf-top);position:relative;cursor:pointer;flex:none;transition:background .25s,border-color .25s}
+.switch input:after{content:"";position:absolute;left:6px;top:6px;width:16px;height:16px;border-radius:50%;background:var(--outline);transition:all .35s var(--spring)}
+.switch input:checked{background:var(--primary);border-color:var(--primary)}
+.switch input:checked:after{left:24px;top:2px;width:24px;height:24px;background:var(--on-primary)}
+.errmsg{color:var(--bad);font-size:14px;min-height:20px;margin-top:10px}
+.foot{display:flex;gap:8px;margin-top:10px;align-items:center}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media(max-width:560px){.hero{padding:26px 20px;border-radius:32px}.fab span.lbl{display:none}.fab{padding:0 20px}}
+</style></head><body><main id="app"></main>
+<button class="btn theme" id="theme" aria-label="Toggle light/dark mode" title="Toggle light/dark mode"></button>
+<button class="btn fab" id="add"><span class="plus">+</span><span class="lbl">Add site</span></button>
+<dialog id="dlg"><form id="form" method="dialog">
+<h3 id="dtitle"></h3>
+<label class="field"><span>Name</span><input type="text" id="f-name" required></label>
+<label class="field"><span>URL</span><input type="text" id="f-url" placeholder="http://{host}:3000" required></label>
+<div class="hint">Use <code>{host}</code> for this machine's address.</div>
+<label class="field"><span>Description</span><input type="text" id="f-desc"></label>
+<label class="field"><span>Project directory</span><input type="text" id="f-dir"></label>
+<label class="field"><span>Notes</span><textarea id="f-notes" rows="3"></textarea></label>
+<label class="switch"><input type="checkbox" id="f-ctl"><div>We control this service<div class="hint" style="margin:0">Shows an Apps button on the card</div></div></label>
+<div class="errmsg" id="err"></div>
+<div class="foot"><button type="button" id="del" class="btn err sm">Delete</button><span class="sp"></span><button type="button" id="cancel" class="btn sm">Cancel</button><button class="btn fill sm" id="save">Save</button></div>
+</form></dialog>
+<script>
+const $=s=>document.querySelector(s), app=$('#app'), dlg=$('#dlg');
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const href=u=>u.replace('{host}',location.hostname);
+let services=[], editing=null;
+async function api(method,url,body){
+  const r=await fetch(url,{method,headers:{'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});
+  const j=await r.json(); if(!r.ok) throw new Error(j.error||'Request failed'); return j;
+}
+let lastKey=null;
+const keyOf=l=>JSON.stringify(l.map(({up,...x})=>x));
+function patchStatus(){
+  services.forEach(s=>document.querySelectorAll('[data-badge="'+s.id+'"]').forEach(b=>{
+    b.classList.toggle('up',s.up); b.lastChild.textContent=s.up?'Running':'Not responding';}));
+  const c=$('#upcount'); if(c) c.textContent=services.filter(s=>s.up).length+' running';
+}
+async function load(){
+  const data=await api('GET','/api/services'), k=keyOf(data);
+  services=data;
+  // Same content as before: update status badges in place, no re-render (no flash)
+  if(k===lastKey){ patchStatus(); return; }
+  lastKey=k; route(); setTimeout(()=>app.classList.add('rendered'),1200);
+}
+const hash=s=>[...s.id].reduce((a,c)=>a+c.charCodeAt(0),0);
+const badge=s=>`<span class="badge ${s.up?'up':''}" data-badge="${esc(s.id)}"><i></i>${s.up?'Running':'Not responding'}</span>`;
+const avatar=s=>{const h=hash(s);return `<div class="avatar t${h%3}">${esc(s.name.trim().charAt(0).toUpperCase())}</div>`};
+function card(s,i){
+  return `<div class="card" style="animation-delay:${i*45}ms"><div class="head">${avatar(s)}<div>
+  <h3><a href="${esc(href(s.url))}" target="_blank" rel="noopener">${esc(s.name)}</a></h3>${badge(s)}</div></div>
+  <div class="desc">${esc(s.description)}</div><div class="url">${esc(href(s.url))}</div>
+  <div class="actions"><a class="btn fill sm" href="${esc(href(s.url))}" target="_blank" rel="noopener">Open</a>
+  ${s.controlled?`<a class="btn tonal sm" href="/apps/${esc(s.id)}">Apps</a>`:''}<span class="sp"></span>
+  <button class="btn sm" data-edit="${esc(s.id)}">Edit</button></div></div>`;
+}
+function home(){
+  const mine=services.filter(s=>s.controlled), other=services.filter(s=>!s.controlled), up=services.filter(s=>s.up).length;
+  const sec=(t,l)=>`<div class="sec">${t}<small>${l.length}</small></div><div class="grid">${l.map(card).join('')||'<div class="desc">None yet.</div>'}</div>`;
+  app.innerHTML=`<section class="hero"><div><h1>Services<br>Hub</h1><p>Every web UI on this machine, one tap away.</p>
+  <div class="count"><span class="chip">${services.length} services</span><span class="chip" id="upcount">${up} running</span></div></div></section>
+  ${sec('Our services',mine)}${sec('Other services',other)}`;
+  bindEdit();
+}
+function detail(id){
+  const s=services.find(x=>x.id===id);
+  if(!s){app.innerHTML='<a class="btn back" href="/">← Back</a><p>Service not found.</p>';return;}
+  app.innerHTML=`<a class="btn tonal sm back" href="/">← All services</a>
+  <div class="detail"><div class="head" style="margin-bottom:10px">${avatar(s)}<div><h1>${esc(s.name)}</h1>${badge(s)}</div></div>
+  <p class="desc">${esc(s.description)}</p>
+  <dl class="facts" style="margin-inline:0"><div class="fact"><dt>URL</dt><dd><a href="${esc(href(s.url))}" target="_blank" rel="noopener">${esc(href(s.url))}</a></dd></div>
+  <div class="fact"><dt>Directory</dt><dd>${s.dir?`<code>${esc(s.dir)}</code>`:'—'}</dd></div>
+  <div class="fact"><dt>Notes</dt><dd>${s.notes?esc(s.notes).replace(/\n/g,'<br>'):'—'}</dd></div></dl>
+  <div class="actions"><a class="btn fill" href="${esc(href(s.url))}" target="_blank" rel="noopener">Open ${esc(s.name)}</a><button class="btn" data-edit="${esc(s.id)}">Edit</button></div></div>`;
+  bindEdit();
+}
+function bindEdit(){app.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>openDlg(services.find(s=>s.id===b.dataset.edit)))}
+function route(){ const m=location.pathname.match(/^\/apps\/([\w-]+)/); m?detail(m[1]):home(); }
+function openDlg(s){
+  editing=s; $('#dtitle').textContent=s?'Edit site':'Add site'; $('#err').textContent='';
+  $('#f-name').value=s?.name||''; $('#f-url').value=s?.url||''; $('#f-desc').value=s?.description||'';
+  $('#f-dir').value=s?.dir||''; $('#f-notes').value=s?.notes||''; $('#f-ctl').checked=!!s?.controlled;
+  $('#del').style.display=s?'':'none'; dlg.showModal();
+}
+$('#add').onclick=()=>openDlg(null);
+$('#cancel').onclick=()=>dlg.close();
+$('#form').onsubmit=async e=>{
+  e.preventDefault();
+  const b={name:$('#f-name').value,url:$('#f-url').value,description:$('#f-desc').value,dir:$('#f-dir').value,notes:$('#f-notes').value,controlled:$('#f-ctl').checked};
+  try{ editing?await api('PUT','/api/services/'+editing.id,b):await api('POST','/api/services',b); dlg.close(); load(); }
+  catch(x){ $('#err').textContent=x.message; }
+};
+$('#del').onclick=async()=>{
+  if(!confirm('Delete "'+editing.name+'"?'))return;
+  await api('DELETE','/api/services/'+editing.id); dlg.close();
+  if(location.pathname.startsWith('/apps/')) history.pushState(null,'','/apps'); load();
+};
+
+const SUN='<svg viewBox="0 0 24 24"><path d="M12 7a5 5 0 100 10 5 5 0 000-10zM2 13h2v-2H2zm18 0h2v-2h-2zM11 2v2h2V2zm0 18v2h2v-2zM5.6 4.2L4.2 5.6l1.4 1.4 1.4-1.4zm12.8 12.8l-1.4 1.4 1.4 1.4 1.4-1.4zM18.4 7l1.4-1.4-1.4-1.4L17 5.6zM5.6 19.8L7 18.4 5.6 17l-1.4 1.4z"/></svg>';
+const MOON='<svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 109 9c0-.5 0-.9-.1-1.4A5.5 5.5 0 0112.4 3.1C12.3 3 12.1 3 12 3z"/></svg>';
+const mq=matchMedia('(prefers-color-scheme: dark)');
+const saved=()=>{try{return localStorage.getItem('theme')}catch{return null}};
+function applyTheme(){
+  const t=saved(); if(t) document.documentElement.dataset.theme=t; else delete document.documentElement.dataset.theme;
+  const dark=t?t==='dark':mq.matches;
+  $('#theme').innerHTML=dark?SUN:MOON;
+  document.querySelector('meta[name=theme-color]').content=dark?'#141218':'#fef7ff';
+}
+$('#theme').onclick=()=>{
+  const dark=saved()?saved()==='dark':mq.matches;
+  try{localStorage.setItem('theme',dark?'light':'dark')}catch{}
+  applyTheme();
+};
+mq.addEventListener('change',applyTheme); applyTheme();
+addEventListener('popstate',route); load(); setInterval(()=>{if(!dlg.open)load()},15000);
+</script></body></html>

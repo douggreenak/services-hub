@@ -1,0 +1,56 @@
+[
+  {
+    "id": "jellyfin",
+    "name": "Jellyfin",
+    "description": "Media server web UI",
+    "url": "http://{host}:8096/web/",
+    "controlled": false,
+    "dir": "",
+    "notes": ""
+  },
+  {
+    "id": "jellyfin-fleet",
+    "name": "Jellyfin Fleet",
+    "description": "Admin dashboard for managing the Jellyfin fleet (Docker: jellyfin-admin)",
+    "url": "http://{host}:8080",
+    "controlled": true,
+    "dir": "/home/jellyfin/jellyfin",
+    "notes": "Docker container jellyfin-admin"
+  },
+  {
+    "id": "audio-flow",
+    "name": "Audio Flow Console",
+    "description": "Signage dashboard",
+    "url": "http://{host}:8088",
+    "controlled": true,
+    "dir": "/home/jellyfin/signage-dashboard",
+    "notes": "node server.js"
+  },
+  {
+    "id": "tv-manager",
+    "name": "TV Manager",
+    "description": "ADB-based TV control UI (localhost only)",
+    "url": "http://{host}:8420",
+    "controlled": true,
+    "dir": "/home/jellyfin/tv-adb-manager",
+    "notes": "python3 -m tvmanager; listens on 127.0.0.1 only"
+  },
+  {
+    "id": "brightsign",
+    "name": "BrightSign Sync Status",
+    "description": "BrightSign media feed status page",
+    "url": "http://{host}/brightsign/status.html",
+    "controlled": true,
+    "dir": "/etc/nginx/sites-enabled/brightsign",
+    "notes": "System nginx on port 80"
+  },
+  {
+    "id": "icecast",
+    "name": "Icecast Status",
+    "description": "Spotify signage audio stream status",
+    "url": "http://{host}:8000",
+    "controlled": false,
+    "dir": "/home/jellyfin/.config/spotify-signage",
+    "notes": ""
+  }
+]
