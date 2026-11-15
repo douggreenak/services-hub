@@ -4,7 +4,7 @@ const test = require('node:test'), assert = require('node:assert/strict'), fs = 
 const { chromium } = require(process.env.PW_CORE || '/home/jellyfin/pwtest/node_modules/playwright-core');
 const stack = require('./stack'); const { P, HUBPW, CREDS, ID } = stack;
 const HOSTS = ['localhost', '127.0.0.1'];            // cookies are per-host: both must work
-const SVCS = ['tvm', 'fleet', 'mockc'];              // real TV Manager (cookie), real Fleet (token), mock (cookie)
+const SVCS = ['tvm', 'fleet', 'mockc', 'mockp'];     // real TV Manager (cookie), real Fleet (token), mock cookie app, mock checklist-shaped app (own login page, 'passcode' field)
 let browser;
 
 const hubO = h => `http://${h}:${P.hub}`;
@@ -29,7 +29,7 @@ async function hubSignIn(ctx, h) {
 async function saveCreds(ctx, h, key, creds) {
   const id = ID[key] ?? key;
   const list = (await api(ctx, h, 'GET', '/api/services')).body, d = list.find(x => x.id === id);
-  const r = await api(ctx, h, 'PUT', '/api/services/' + id, { ...d, login: { mode: d.login.mode, username: creds.username ?? d.login.username, path: '', password: creds.password } });
+  const r = await api(ctx, h, 'PUT', '/api/services/' + id, { ...d, login: { mode: d.login.mode, username: creds.username ?? d.login.username, path: d.login.path || '', password: creds.password } });
   assert.equal(r.status, 200);
 }
 // What is this page showing?
@@ -44,7 +44,7 @@ async function classify(page, s) {
     }
     if (s === 'tvm') { if (await page.locator('#pw').count()) return 'svc-login'; if (await page.locator('nav[aria-label="Main"]').count()) return 'svc-in'; }
     if (s === 'fleet') { if (await page.getByText('Sign in to manage your Apple TVs').count()) return 'svc-login'; if (await page.locator('[aria-label="Account menu"]').count()) return 'svc-in'; }
-    if (s === 'mockc' && await page.locator('#state').count()) { const t = await page.locator('#state').textContent({ timeout: 1000 }); return t === 'LOGGED-IN' ? 'svc-in' : 'svc-login'; }
+    if ((s === 'mockc' || s === 'mockp') && await page.locator('#state').count()) { const t = await page.locator('#state').textContent({ timeout: 1000 }); return t === 'LOGGED-IN' ? 'svc-in' : 'svc-login'; }
     if (s === 'plain') return 'svc-in';
   } catch (e) { classify.err = e.message.split('\n')[0]; }
   return 'loading';
@@ -122,7 +122,7 @@ for (const h of HOSTS) for (const s of SVCS) test.describe(`${h} · ${s}`, () =>
     await hubSignIn(ctx, h); await saveCreds(ctx, h, s, CREDS[s]);
     await page.goto(url()); await settle(page, s, 'svc-in');
     if (s === 'fleet') await page.evaluate(() => localStorage.setItem('kc.admin.jwt', 'garbage.token.value'));
-    else await ctx.addCookies([{ name: s === 'tvm' ? 'tvm_session' : 'mockc', value: 'garbage', url: svcO(h, s) }]);
+    else await ctx.addCookies([{ name: s === 'tvm' ? 'tvm_session' : s === 'mockp' ? 'chk' : 'mockc', value: 'garbage', url: svcO(h, s) }]);
     await page.waitForTimeout(1800);                                  // loop guard window (shortened in tests)
     await page.goto(url()); await settle(page, s, 'svc-in', 25000);
   });
@@ -139,8 +139,8 @@ for (const h of HOSTS) for (const s of SVCS) test.describe(`${h} · ${s}`, () =>
   run('hub card "Open" signs in', async (ctx, page) => {
     await hubSignIn(ctx, h); await saveCreds(ctx, h, s, CREDS[s]);
     await page.goto(hubO(h) + '/'); await settle(page, s, 'hub-home');
-    const [pop] = await Promise.all([ctx.waitForEvent('page'), page.locator('.card', { hasText: { tvm: 'TV Manager', fleet: 'Jellyfin Fleet', mockc: 'Mock cookie' }[s] }).getByText('Open', { exact: true }).click()]);
-    await settle(pop, s, 'svc-in');
+    await page.locator('.card', { hasText: { tvm: 'TV Manager', fleet: 'Jellyfin Fleet', mockc: 'Mock cookie', mockp: 'Mock checklist' }[s] }).getByText('Open', { exact: true }).click();
+    await settle(page, s, 'svc-in'); assert.equal(ctx.pages().length, 1, 'opened in the same tab');
   });
 });
 
@@ -150,8 +150,8 @@ test.describe('plain service (no login) and unreachable service', () => {
       const ctx = await fresh(h), page = await ctx.newPage();
       await hubSignIn(ctx, h); await page.goto(svcO(h, 'plain') + '/'); await settle(page, 'plain', 'svc-in');
       await page.goto(hubO(h) + '/'); await settle(page, 'plain', 'hub-home');
-      const [pop] = await Promise.all([ctx.waitForEvent('page'), page.locator('.card', { hasText: 'Plain' }).getByText('Open', { exact: true }).click()]);
-      await pop.waitForLoadState(); assert.equal(await pop.locator('#state').textContent(), 'PLAIN'); await ctx.close();
+      await page.locator('.card', { hasText: 'Plain' }).getByText('Open', { exact: true }).click();
+      await page.waitForLoadState(); assert.equal(await page.locator('#state').textContent(), 'PLAIN'); assert.equal(ctx.pages().length, 1, 'opened in the same tab'); await ctx.close();
     });
     test(`${h}: service is down -> clear message with a way out`, { timeout: 40000 }, async () => {
       const ctx = await fresh(h), page = await ctx.newPage(); await hubSignIn(ctx, h);
@@ -242,7 +242,7 @@ test.describe('hub itself', () => {
     await page.locator('.card', { hasText: 'Mock cookie' }).getByText('Edit').click();
     await page.selectOption('#f-lmode', 'cookie'); await page.fill('#f-lpass', CREDS.mockc.password); await page.click('#save');
     await page.waitForTimeout(800);
-    const [pop] = await Promise.all([ctx.waitForEvent('page'), page.locator('.card', { hasText: 'Mock cookie' }).getByText('Open', { exact: true }).click()]);
-    await settle(pop, 'mockc', 'svc-in'); await ctx.close();
+    await page.locator('.card', { hasText: 'Mock cookie' }).getByText('Open', { exact: true }).click();
+    await settle(page, 'mockc', 'svc-in'); await ctx.close();
   });
 });

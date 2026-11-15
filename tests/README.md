@@ -15,7 +15,8 @@ default `~/pwtest/node_modules/playwright-core`). A full run takes about 3.5 min
 ## What is covered (every combination of)
 
 - **Host name:** `localhost` and `127.0.0.1` (cookies are per host, so both must work)
-- **Service:** the real TV Manager (session cookie), the real Fleet (token handoff), a mock cookie service
+- **Service:** the real TV Manager (session cookie), the real Fleet (token handoff), a mock cookie service, and a
+  mock shaped like the Bethel checklist (its own `/login` page, `{passcode}` JSON login, `sso.js` in `path:` mode)
 - **Entry:** direct visit to the service, hub card "Open"
 - **Hub state:** signed out, signed in
 - **Saved login:** correct, wrong, none saved

@@ -2,7 +2,7 @@
 // (backend + dashboard in docker), and two mock services. Nothing here touches production ports or data.
 const { spawn, execSync } = require('child_process'), fs = require('fs'), os = require('os'), path = require('path');
 const HOME = os.homedir();
-const P = { hub: 18090, tvm: 18420, fleet: 18080, mockc: 18097, plain: 18096, down: 18095 };
+const P = { hub: 18090, tvm: 18420, fleet: 18080, mockc: 18097, mockp: 18094, plain: 18096, down: 18095 };
 const FLEET_DIR = path.join(HOME, 'apps/Jellyfin-Apple-TV/management-server');
 const procs = []; let tmp;
 const sh = (c, o) => { try { return execSync(c, { stdio: 'pipe', ...o }).toString(); } catch (e) { return ''; } };
@@ -14,8 +14,8 @@ async function waitHttp(url, ms = 30000) {
 }
 const run = (cmd, args, opts) => { const p = spawn(cmd, args, { stdio: 'ignore', ...opts }); procs.push(p); return p; };
 
-exports.ID = { tvm: 'tv-manager', fleet: 'jellyfin-fleet', mockc: 'mockc', plain: 'plain', down: 'down' }; // hub ids: the real services hard-code theirs
-exports.P = P; exports.HUBPW = 'hubpass'; exports.CREDS = { tvm: { password: 'tvpass12' }, fleet: { username: 'admin', password: 'fleetpass' }, mockc: { password: 'cookiepw' } };
+exports.ID = { tvm: 'tv-manager', fleet: 'jellyfin-fleet', mockc: 'mockc', mockp: 'mockp', plain: 'plain', down: 'down' }; // hub ids: the real services hard-code theirs
+exports.P = P; exports.HUBPW = 'hubpass'; exports.CREDS = { tvm: { password: 'tvpass12' }, fleet: { username: 'admin', password: 'fleetpass' }, mockc: { password: 'cookiepw' }, mockp: { password: 'pass-code' } };
 
 exports.start = async function () {
   tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'hubtest-'));
@@ -29,7 +29,8 @@ exports.start = async function () {
   sh(`docker run -d --name hubtest-admin --network hubtest-net -p ${P.fleet}:80 jellyfin-admin`);
   run('node', [path.join(__dirname, 'mock-service.js'), String(P.mockc), 'cookie']);
   run('node', [path.join(__dirname, 'mock-service.js'), String(P.plain), 'plain']);
-  await Promise.all([waitHttp(`http://localhost:${P.tvm}/api/session`), waitHttp(`http://localhost:${P.mockc}/api/session`),
+  run('node', [path.join(__dirname, 'mock-service.js'), String(P.mockp), 'checklist']);
+  await Promise.all([waitHttp(`http://localhost:${P.tvm}/api/session`), waitHttp(`http://localhost:${P.mockc}/api/session`), waitHttp(`http://localhost:${P.mockp}/sso.js`),
     waitHttp(`http://localhost:${P.fleet}/api/v1/admin/auth/me`)]);
   await sleep(500);
   return tmp;
@@ -39,6 +40,7 @@ const services = () => [
   { id: 'tv-manager', name: 'TV Manager', url: `http://{host}:${P.tvm}`, login: { mode: 'cookie', headers: { 'X-Requested-With': 'tvm' } } },
   { id: 'jellyfin-fleet', name: 'Jellyfin Fleet', url: `http://{host}:${P.fleet}`, login: { mode: 'token', username: 'admin' } },
   { id: 'mockc', name: 'Mock cookie', url: `http://{host}:${P.mockc}`, login: { mode: 'cookie' } },
+  { id: 'mockp', name: 'Mock checklist', url: `http://{host}:${P.mockp}`, login: { mode: 'cookie', path: '/api/auth/login', passwordField: 'passcode' } }, // shaped like the Bethel checklist
   { id: 'plain', name: 'Plain', url: `http://{host}:${P.plain}`, login: { mode: 'none' } },
   { id: 'down', name: 'Down', url: `http://{host}:${P.down}`, login: { mode: 'cookie' } },
 ];

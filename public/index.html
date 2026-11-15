@@ -239,9 +239,9 @@ const badge=s=>`<span class="badge ${s.up?'up':''}" data-badge="${esc(s.id)}"><i
 const avatar=s=>{const h=hash(s);return `<div class="avatar t${h%3}"><span>${esc(s.name.trim().charAt(0).toUpperCase())}</span>${s.icon?`<img src="${esc(href(s.icon))}" alt="" onerror="this.remove()">`:''}</div>`};
 function card(s,i){
   return `<div class="card" style="animation-delay:${i*45}ms"><div class="head">${avatar(s)}<div>
-  <h3><a href="/go/${esc(s.id)}" target="_blank" rel="noopener">${esc(s.name)}</a></h3>${badge(s)}</div></div>
+  <h3><a href="/go/${esc(s.id)}">${esc(s.name)}</a></h3>${badge(s)}</div></div>
   <div class="desc">${esc(s.description)}</div><div class="url">${esc(href(s.url))}</div>
-  <div class="actions"><a class="btn fill sm" href="/go/${esc(s.id)}" target="_blank" rel="noopener">Open</a>
+  <div class="actions"><a class="btn fill sm" href="/go/${esc(s.id)}">Open</a>
   ${s.controlled?`<a class="btn text sm" href="/apps/${esc(s.id)}">View</a>`:''}<span class="sp"></span>
   <button class="btn text sm quiet" data-edit="${esc(s.id)}">Edit</button></div></div>`;
 }
@@ -258,10 +258,10 @@ function detail(id){
   app.innerHTML=`<a class="btn tonal sm back" href="/">← All services</a>
   <div class="detail"><div class="head" style="margin-bottom:10px">${avatar(s)}<div><h1>${esc(s.name)}</h1>${badge(s)}</div></div>
   <p class="desc">${esc(s.description)}</p>
-  <dl class="facts" style="margin-inline:0"><div class="fact"><dt>URL</dt><dd><a href="${esc(href(s.url))}" target="_blank" rel="noopener">${esc(href(s.url))}</a></dd></div>
+  <dl class="facts" style="margin-inline:0"><div class="fact"><dt>URL</dt><dd><a href="${esc(href(s.url))}">${esc(href(s.url))}</a></dd></div>
   <div class="fact"><dt>Directory</dt><dd>${s.dir?`<code>${esc(s.dir)}</code>`:'—'}</dd></div>
   <div class="fact"><dt>Notes</dt><dd>${s.notes?esc(s.notes).replace(/\n/g,'<br>'):'—'}</dd></div></dl>
-  <div class="actions"><a class="btn fill" href="/go/${esc(s.id)}" target="_blank" rel="noopener">Open ${esc(s.name)}</a><button class="btn" data-edit="${esc(s.id)}">Edit</button></div></div>`;
+  <div class="actions"><a class="btn fill" href="/go/${esc(s.id)}">Open ${esc(s.name)}</a><button class="btn" data-edit="${esc(s.id)}">Edit</button></div></div>`;
   bindEdit();
 }
 function bindEdit(){app.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>openDlg(services.find(s=>s.id===b.dataset.edit)))}
