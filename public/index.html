@@ -1,34 +1,35 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#6750a4">
+<meta name="theme-color" content="#006a6a">
 <title>Services Hub</title>
+<link rel="icon" type="image/svg+xml" href="/icons/hub.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,300..900&display=swap" rel="stylesheet">
 <style>
 /* Material 3 Expressive: tonal color roles, big shapes, springy motion */
 :root{
-  --primary:#6750a4;--on-primary:#fff;--primary-c:#e9ddff;--on-primary-c:#22005d;
-  --secondary-c:#e8def8;--on-secondary-c:#1d192b;
-  --tertiary-c:#ffd8e4;--on-tertiary-c:#31101d;
-  --surface:#fef7ff;--surf-low:#f7f2fa;--surf:#f3edf7;--surf-high:#ece6f0;--surf-top:#e6e0e9;
-  --on-surface:#1d1b20;--on-var:#49454f;--outline:#79747e;--outline-v:#cac4d0;
+  --primary:#006a6a;--on-primary:#ffffff;--primary-c:#9cf1f0;--on-primary-c:#002020;
+  --secondary-c:#cce8e7;--on-secondary-c:#051f1f;
+  --tertiary-c:#d4e3ff;--on-tertiary-c:#0c1d36;
+  --surface:#f4fafa;--surf-low:#eef5f4;--surf:#e9efef;--surf-high:#e3e9e9;--surf-top:#dde4e3;
+  --on-surface:#161d1d;--on-var:#3f4948;--outline:#6f7979;--outline-v:#bec8c8;
   --ok:#146c2e;--ok-c:#b7f1c0;--bad:#ba1a1a;--bad-c:#ffdad6;--on-bad-c:#410002;
   --spring:cubic-bezier(.34,1.56,.64,1);--emph:cubic-bezier(.2,0,0,1);
   --font:"Roboto Flex",system-ui,sans-serif;
 }
 @media(prefers-color-scheme:dark){:root:not([data-theme=light]){
-  --primary:#cfbcff;--on-primary:#381e72;--primary-c:#4f378b;--on-primary-c:#e9ddff;
-  --secondary-c:#4a4458;--on-secondary-c:#e8def8;
-  --tertiary-c:#633b48;--on-tertiary-c:#ffd8e4;
-  --surface:#141218;--surf-low:#1d1b20;--surf:#211f26;--surf-high:#2b2930;--surf-top:#36343b;
-  --on-surface:#e6e0e9;--on-var:#cac4d0;--outline:#938f99;--outline-v:#49454f;
+  --primary:#80d4d3;--on-primary:#003737;--primary-c:#004f50;--on-primary-c:#9cf1f0;
+  --secondary-c:#324b4b;--on-secondary-c:#cce8e7;
+  --tertiary-c:#324863;--on-tertiary-c:#d4e3ff;
+  --surface:#0e1415;--surf-low:#161d1d;--surf:#1a2121;--surf-high:#252b2b;--surf-top:#303636;
+  --on-surface:#dde4e3;--on-var:#bec8c8;--outline:#899392;--outline-v:#3f4948;
   --ok:#9bd5a4;--ok-c:#00531d;--bad:#ffb4ab;--bad-c:#690005;--on-bad-c:#ffdad6;}}
 :root[data-theme=dark]{
-  --primary:#cfbcff;--on-primary:#381e72;--primary-c:#4f378b;--on-primary-c:#e9ddff;
-  --secondary-c:#4a4458;--on-secondary-c:#e8def8;
-  --tertiary-c:#633b48;--on-tertiary-c:#ffd8e4;
-  --surface:#141218;--surf-low:#1d1b20;--surf:#211f26;--surf-high:#2b2930;--surf-top:#36343b;
-  --on-surface:#e6e0e9;--on-var:#cac4d0;--outline:#938f99;--outline-v:#49454f;
+  --primary:#80d4d3;--on-primary:#003737;--primary-c:#004f50;--on-primary-c:#9cf1f0;
+  --secondary-c:#324b4b;--on-secondary-c:#cce8e7;
+  --tertiary-c:#324863;--on-tertiary-c:#d4e3ff;
+  --surface:#0e1415;--surf-low:#161d1d;--surf:#1a2121;--surf-high:#252b2b;--surf-top:#303636;
+  --on-surface:#dde4e3;--on-var:#bec8c8;--outline:#899392;--outline-v:#3f4948;
   --ok:#9bd5a4;--ok-c:#00531d;--bad:#ffb4ab;--bad-c:#690005;--on-bad-c:#ffdad6;}
 :root{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
 @media(prefers-color-scheme:dark){:root:not([data-theme=light]){color-scheme:dark}}
@@ -52,6 +53,8 @@ a{color:inherit}
 .btn:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--primary);outline-offset:2px}
 .btn.fill{background:var(--primary);color:var(--on-primary)}.btn.fill:hover{box-shadow:0 2px 10px #0004}
 .btn.tonal{background:var(--secondary-c);color:var(--on-secondary-c)}
+.btn.text{background:transparent;color:var(--primary);padding:0 14px}.btn.text:hover{background:var(--surf-top)}
+.btn.text.quiet{color:var(--on-var);font-weight:500}
 .btn.sm{height:40px;padding:0 18px;border-radius:20px}
 .btn.err{background:var(--bad-c);color:var(--on-bad-c)}
 .fab{position:fixed;right:24px;bottom:24px;height:64px;padding:0 28px 0 22px;border-radius:24px;font-size:16px;background:var(--tertiary-c);color:var(--on-tertiary-c);box-shadow:0 4px 14px #0004;z-index:5}
@@ -70,7 +73,8 @@ a{color:inherit}
 @keyframes pop{from{opacity:0;transform:scale(.88) translateY(14px)}}
 .head{display:flex;gap:14px;align-items:center}
 .avatar{width:56px;height:56px;flex:none;display:grid;place-items:center;font-size:24px;font-weight:800;background:var(--primary-c);color:var(--on-primary-c);transition:border-radius .4s var(--emph)}
-.avatar{border-radius:50%}
+.avatar{border-radius:50%;position:relative;overflow:hidden}
+.avatar img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .card:hover .avatar,.detail .avatar{border-radius:12px}
 .t1{background:var(--secondary-c);color:var(--on-secondary-c)}.t2{background:var(--tertiary-c);color:var(--on-tertiary-c)}
 .head h3{margin:0;font-size:19px;font-weight:700;line-height:1.2}
@@ -118,6 +122,7 @@ input[type=text]:focus,textarea:focus{outline:0;border-color:var(--primary);bord
 <label class="field"><span>URL</span><input type="text" id="f-url" placeholder="http://{host}:3000" required></label>
 <div class="hint">Use <code>{host}</code> for this machine's address.</div>
 <label class="field"><span>Description</span><input type="text" id="f-desc"></label>
+<label class="field"><span>Icon URL (optional)</span><input type="text" id="f-icon" placeholder="/icons/my-site.svg"></label>
 <label class="field"><span>Project directory</span><input type="text" id="f-dir"></label>
 <label class="field"><span>Notes</span><textarea id="f-notes" rows="3"></textarea></label>
 <label class="switch"><input type="checkbox" id="f-ctl"><div>We control this service<div class="hint" style="margin:0">Shows an Apps button on the card</div></div></label>
@@ -149,21 +154,20 @@ async function load(){
 }
 const hash=s=>[...s.id].reduce((a,c)=>a+c.charCodeAt(0),0);
 const badge=s=>`<span class="badge ${s.up?'up':''}" data-badge="${esc(s.id)}"><i></i>${s.up?'Running':'Not responding'}</span>`;
-const avatar=s=>{const h=hash(s);return `<div class="avatar t${h%3}">${esc(s.name.trim().charAt(0).toUpperCase())}</div>`};
+const avatar=s=>{const h=hash(s);return `<div class="avatar t${h%3}"><span>${esc(s.name.trim().charAt(0).toUpperCase())}</span>${s.icon?`<img src="${esc(href(s.icon))}" alt="" onerror="this.remove()">`:''}</div>`};
 function card(s,i){
   return `<div class="card" style="animation-delay:${i*45}ms"><div class="head">${avatar(s)}<div>
   <h3><a href="${esc(href(s.url))}" target="_blank" rel="noopener">${esc(s.name)}</a></h3>${badge(s)}</div></div>
   <div class="desc">${esc(s.description)}</div><div class="url">${esc(href(s.url))}</div>
   <div class="actions"><a class="btn fill sm" href="${esc(href(s.url))}" target="_blank" rel="noopener">Open</a>
-  ${s.controlled?`<a class="btn tonal sm" href="/apps/${esc(s.id)}">Apps</a>`:''}<span class="sp"></span>
-  <button class="btn sm" data-edit="${esc(s.id)}">Edit</button></div></div>`;
+  ${s.controlled?`<a class="btn text sm" href="/apps/${esc(s.id)}">View</a>`:''}<span class="sp"></span>
+  <button class="btn text sm quiet" data-edit="${esc(s.id)}">Edit</button></div></div>`;
 }
 function home(){
-  const mine=services.filter(s=>s.controlled), other=services.filter(s=>!s.controlled), up=services.filter(s=>s.up).length;
-  const sec=(t,l)=>`<div class="sec">${t}<small>${l.length}</small></div><div class="grid">${l.map(card).join('')||'<div class="desc">None yet.</div>'}</div>`;
+  const up=services.filter(s=>s.up).length;
   app.innerHTML=`<section class="hero"><div><h1>Services<br>Hub</h1><p>Every web UI on this machine, one tap away.</p>
   <div class="count"><span class="chip">${services.length} services</span><span class="chip" id="upcount">${up} running</span></div></div></section>
-  ${sec('Our services',mine)}${sec('Other services',other)}`;
+  <div class="grid" style="margin-top:8px">${services.map(card).join('')||'<div class="desc">No services yet.</div>'}</div>`;
   bindEdit();
 }
 function detail(id){
@@ -183,14 +187,14 @@ function route(){ const m=location.pathname.match(/^\/apps\/([\w-]+)/); m?detail
 function openDlg(s){
   editing=s; $('#dtitle').textContent=s?'Edit site':'Add site'; $('#err').textContent='';
   $('#f-name').value=s?.name||''; $('#f-url').value=s?.url||''; $('#f-desc').value=s?.description||'';
-  $('#f-dir').value=s?.dir||''; $('#f-notes').value=s?.notes||''; $('#f-ctl').checked=!!s?.controlled;
+  $('#f-dir').value=s?.dir||''; $('#f-icon').value=s?.icon||''; $('#f-notes').value=s?.notes||''; $('#f-ctl').checked=!!s?.controlled;
   $('#del').style.display=s?'':'none'; dlg.showModal();
 }
 $('#add').onclick=()=>openDlg(null);
 $('#cancel').onclick=()=>dlg.close();
 $('#form').onsubmit=async e=>{
   e.preventDefault();
-  const b={name:$('#f-name').value,url:$('#f-url').value,description:$('#f-desc').value,dir:$('#f-dir').value,notes:$('#f-notes').value,controlled:$('#f-ctl').checked};
+  const b={name:$('#f-name').value,url:$('#f-url').value,description:$('#f-desc').value,dir:$('#f-dir').value,icon:$('#f-icon').value,notes:$('#f-notes').value,controlled:$('#f-ctl').checked};
   try{ editing?await api('PUT','/api/services/'+editing.id,b):await api('POST','/api/services',b); dlg.close(); load(); }
   catch(x){ $('#err').textContent=x.message; }
 };
@@ -208,7 +212,7 @@ function applyTheme(){
   const t=saved(); if(t) document.documentElement.dataset.theme=t; else delete document.documentElement.dataset.theme;
   const dark=t?t==='dark':mq.matches;
   $('#theme').innerHTML=dark?SUN:MOON;
-  document.querySelector('meta[name=theme-color]').content=dark?'#141218':'#fef7ff';
+  document.querySelector('meta[name=theme-color]').content=dark?'#0e1415':'#f4fafa';
 }
 $('#theme').onclick=()=>{
   const dark=saved()?saved()==='dark':mq.matches;

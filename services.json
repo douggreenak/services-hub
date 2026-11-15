@@ -6,7 +6,8 @@
     "url": "http://{host}:8096/web/",
     "controlled": false,
     "dir": "",
-    "notes": ""
+    "notes": "",
+    "icon": "/icons/jellyfin.svg"
   },
   {
     "id": "jellyfin-fleet",
@@ -15,7 +16,8 @@
     "url": "http://{host}:8080",
     "controlled": true,
     "dir": "/home/jellyfin/jellyfin",
-    "notes": "Docker container jellyfin-admin"
+    "notes": "Docker container jellyfin-admin",
+    "icon": "/icons/jellyfin-fleet.svg"
   },
   {
     "id": "audio-flow",
@@ -24,16 +26,18 @@
     "url": "http://{host}:8088",
     "controlled": true,
     "dir": "/home/jellyfin/signage-dashboard",
-    "notes": "node server.js"
+    "notes": "node server.js",
+    "icon": "/icons/audio-flow.svg"
   },
   {
     "id": "tv-manager",
     "name": "TV Manager",
-    "description": "ADB-based TV control UI (localhost only)",
+    "description": "ADB-based TV control UI",
     "url": "http://{host}:8420",
     "controlled": true,
     "dir": "/home/jellyfin/tv-adb-manager",
-    "notes": "python3 -m tvmanager; listens on 127.0.0.1 only"
+    "notes": "python3 -m tvmanager",
+    "icon": "/icons/tv-manager.svg"
   },
   {
     "id": "brightsign",
@@ -42,7 +46,8 @@
     "url": "http://{host}/brightsign/status.html",
     "controlled": true,
     "dir": "/etc/nginx/sites-enabled/brightsign",
-    "notes": "System nginx on port 80"
+    "notes": "System nginx on port 80",
+    "icon": "/icons/brightsign.svg"
   },
   {
     "id": "icecast",
@@ -51,6 +56,7 @@
     "url": "http://{host}:8000",
     "controlled": false,
     "dir": "/home/jellyfin/.config/spotify-signage",
-    "notes": ""
+    "notes": "",
+    "icon": "/icons/icecast.svg"
   }
 ]

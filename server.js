@@ -5,12 +5,13 @@ const DATA = path.join(__dirname, 'services.json');
 const PUB = path.join(__dirname, 'public');
 const load = () => { try { return JSON.parse(fs.readFileSync(DATA, 'utf8')); } catch { return []; } };
 const save = s => { fs.writeFileSync(DATA + '.tmp', JSON.stringify(s, null, 2)); fs.renameSync(DATA + '.tmp', DATA); };
-const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css' };
+const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml' };
 
 const clean = b => ({
   name: String(b.name || '').trim().slice(0, 100),
   description: String(b.description || '').trim().slice(0, 500),
   url: String(b.url || '').trim().slice(0, 500),
+  icon: String(b.icon || '').trim().slice(0, 500),
   controlled: !!b.controlled,
   dir: String(b.dir || '').trim().slice(0, 300),
   notes: String(b.notes || '').trim().slice(0, 2000),
