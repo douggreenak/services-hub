@@ -16,6 +16,6 @@ http.createServer((q, r) => {
     if (q.method === 'POST' && q.url === '/api/logout') return j(200, { ok: true }, { 'Set-Cookie': 'mockc=; Path=/; Max-Age=0' });
     r.writeHead(200, { 'Content-Type': 'text/html' });
     r.end(`<script src="/sso.js" data-service="mockc" data-check="session:/api/session" data-logout="POST /api/logout"></script>
-<h1 id="state">${inn ? 'LOGGED-IN' : 'LOGIN'}</h1><button id="out" onclick="fetch('/api/logout',{method:'POST'})">Sign out</button>`);
+<h1 id="state">${inn ? 'LOGGED-IN' : 'LOGIN'}</h1>${inn ? '' : '<input type="password" id="pw">'}<button id="out" onclick="fetch('/api/logout',{method:'POST'})">Sign out</button>`);
   });
 }).listen(+port, '0.0.0.0');

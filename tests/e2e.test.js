@@ -12,8 +12,11 @@ const svcO = (h, s) => `http://${h}:${P[s]}`;
 async function newCtx(h) {
   const ctx = await browser.newContext();
   await ctx.addInitScript(`window.__HUB_ORIGIN__ = ${JSON.stringify(hubO(h))}; window.__HUB_GUARD_MS__ = 1500;`);
+  // Flash detector: remember if a login field was ever visible while the loading wheel was not covering the page.
+  await ctx.addInitScript(`(function(){function t(){try{var p=document.querySelector('input[type=password]');if(p&&p.getClientRects().length&&!document.getElementById('hub-sso-overlay'))sessionStorage.setItem('flash','1')}catch(e){}requestAnimationFrame(t)}requestAnimationFrame(t)})();`);
   return ctx;
 }
+const noFlash = async page => assert.equal(await page.evaluate(() => sessionStorage.getItem('flash')), null, 'the service login screen flashed before the redirect');
 async function api(ctx, h, method, p, body) {
   const r = await ctx.request.fetch(hubO(h) + p, { method, data: body, headers: { 'Content-Type': 'application/json' } });
   return { status: r.status(), body: await r.json().catch(() => null) };
@@ -73,13 +76,13 @@ for (const h of HOSTS) for (const s of SVCS) test.describe(`${h} · ${s}`, () =>
     await hubSignIn(ctx, h); await saveCreds(ctx, h, s, CREDS[s]);
     await api(ctx, h, 'POST', '/api/auth/logout');                      // hub signed out, service creds stay saved
     await page.goto(url()); await settle(page, s, 'hub-login');
-    await fillHubLogin(page); await settle(page, s, 'svc-in');
+    await fillHubLogin(page); await settle(page, s, 'svc-in'); await noFlash(page);
     assert.ok(page.url().startsWith(svcO(h, s)), 'returned to the service');
     assert.ok(!page.url().includes('#sso='), 'token stripped from the URL');
   });
   run('direct visit, hub signed in, login saved -> signed in with no hub UI', async (ctx, page) => {
     await hubSignIn(ctx, h); await saveCreds(ctx, h, s, CREDS[s]);
-    await page.goto(url()); await settle(page, s, 'svc-in');
+    await page.goto(url()); await settle(page, s, 'svc-in'); await page.waitForTimeout(500); await noFlash(page);
   });
   run('direct visit, hub signed in, nothing saved -> hub asks once -> signed in, then remembered', async (ctx, page) => {
     await hubSignIn(ctx, h);
@@ -185,7 +188,7 @@ test.describe('hub itself', () => {
     }
     await ctx.close();
   });
-  test('saved passwords: encrypted on disk, 0600, never returned by the API, survive restart, sessions do not', async () => {
+  test('saved passwords: encrypted on disk, 0600, never returned by the API, and everything survives a restart', async () => {
     await stack.freshHub(); const ctx = await newCtx(h); await hubSignIn(ctx, h); await saveCreds(ctx, h, 'mockc', CREDS.mockc);
     const dir = stack.hubDir(), vault = fs.readFileSync(dir + '/vault.json', 'utf8');
     assert.ok(!vault.includes('cookiepw'), 'no plaintext in vault.json');
@@ -194,8 +197,8 @@ test.describe('hub itself', () => {
     const list = await api(ctx, h, 'GET', '/api/services'); assert.ok(!JSON.stringify(list.body).includes('cookiepw'));
     assert.equal(list.body.find(x => x.id === 'mockc').login.hasPassword, true);
     await stack.restartHub();
-    assert.equal((await api(ctx, h, 'GET', '/api/services')).status, 401, 'restart signs out');
-    await hubSignIn(ctx, h); assert.equal((await api(ctx, h, 'GET', '/api/services')).body.find(x => x.id === 'mockc').login.hasPassword, true, 'logins survive restart');
+    assert.equal((await api(ctx, h, 'GET', '/api/services')).status, 200, 'still signed in after a restart');
+    assert.equal((await api(ctx, h, 'GET', '/api/services')).body.find(x => x.id === 'mockc').login.hasPassword, true, 'saved service logins still usable after restart');
     const page = await ctx.newPage(); await page.goto(svcO(h, 'mockc') + '/'); await settle(page, 'mockc', 'svc-in'); await ctx.close();
   });
   test('service names are escaped on the login form page (no script injection)', async () => {
@@ -203,6 +206,30 @@ test.describe('hub itself', () => {
     const list = (await api(ctx, h, 'GET', '/api/services')).body, d = list.find(x => x.id === 'mockc');
     await api(ctx, h, 'PUT', '/api/services/mockc', { ...d, name: '<img src=x onerror="window.pwned=1">' });
     await page.goto(hubO(h) + '/go/mockc'); await settle(page, 'x', 'hub-form'); assert.equal(await page.evaluate(() => window.pwned), undefined); await ctx.close();
+  });
+  test('login is saved forever: survives restarts, renews on every visit, and only an explicit sign-out ends it', async () => {
+    await stack.freshHub(); const ctx = await newCtx(h); await hubSignIn(ctx, h);
+    const ck = (await ctx.cookies()).find(c => c.name === 'hub_session');
+    assert.ok(ck.expires > Date.now() / 1000 + 390 * 86400, 'cookie lasts the browser maximum (400 days)');
+    const old = ck.expires; await new Promise(r => setTimeout(r, 1500)); await api(ctx, h, 'GET', '/api/auth/status');
+    assert.ok((await ctx.cookies()).find(c => c.name === 'hub_session').expires > old, 'each visit renews the cookie');
+    assert.equal((fs.statSync(stack.hubDir() + '/sessions.json').mode & 0o777), 0o600);
+    assert.ok(!fs.readFileSync(stack.hubDir() + '/sessions.json', 'utf8').includes(ck.value), 'session token itself is not stored');
+    for (let i = 0; i < 3; i++) { await stack.restartHub(); assert.equal((await api(ctx, h, 'GET', '/api/services')).status, 200, 'restart ' + i); }
+    await api(ctx, h, 'POST', '/api/auth/logout'); await stack.restartHub();
+    assert.equal((await api(ctx, h, 'GET', '/api/services')).status, 401, 'signed-out stays signed out after a restart');
+    assert.ok(!fs.existsSync(stack.hubDir() + '/sessions.json'), 'vault key removed with the last session');
+    await hubSignIn(ctx, h); assert.equal((await api(ctx, h, 'GET', '/api/services')).status, 200); await ctx.close();
+  });
+  test('QR button opens a code for the hub apps page (sits beside the theme and sign-out buttons)', async () => {
+    await stack.freshHub(); const ctx = await newCtx(h), page = await ctx.newPage(); await hubSignIn(ctx, h);
+    await page.goto(hubO(h) + '/'); await settle(page, 'x', 'hub-home');
+    const xs = await Promise.all(['#qrbtn', '#logout', '#theme'].map(async s => (await page.locator(s).boundingBox()).x));
+    assert.ok(xs[0] < xs[1] && xs[1] < xs[2], 'order: QR, sign out, theme');
+    await page.click('#qrbtn'); await page.waitForSelector('#qrbox svg path');
+    assert.match(await page.locator('#qrurl').textContent(), /^http:\/\/[\d.]+:18090\/apps$/);
+    assert.ok((await page.locator('#qrbox svg path').getAttribute('d')).length > 500, 'a real code is drawn');
+    await page.click('#qrclose'); assert.equal(await page.locator('#qrdlg[open]').count(), 0); await ctx.close();
   });
   test('hub sign-out button and /logout end the session', async () => {
     await stack.freshHub(); const ctx = await newCtx(h), page = await ctx.newPage(); await hubSignIn(ctx, h);

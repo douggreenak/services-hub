@@ -63,6 +63,10 @@ a{color:inherit}
 .theme{position:fixed;top:16px;right:16px;z-index:6;width:48px;height:48px;padding:0;border-radius:24px;background:var(--surf-high);color:var(--on-surface);box-shadow:0 2px 8px #0003}
 .theme svg{width:22px;height:22px;fill:currentColor}
 .theme.lo{right:76px}
+.theme.qr{right:136px}
+.qrbox{background:#fff;border-radius:24px;padding:14px;margin:16px auto 8px;width:min(300px,80vw);aspect-ratio:1}
+.qrbox svg{display:block;width:100%;height:100%}
+.qrurl{text-align:center;font-size:13px;color:var(--on-var);word-break:break-all;margin:6px 0 4px}
 .theme[hidden]{display:none}
 .authcard{max-width:420px;margin:12vh auto 0;background:var(--surf);border-radius:40px;padding:36px 28px;text-align:center}
 .authcard img{width:72px;height:72px;border-radius:50%}
@@ -82,6 +86,8 @@ main{position:relative;z-index:1}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes morph2{0%{border-radius:50%}25%{border-radius:62% 38% 46% 54%/55% 41% 59% 45%}50%{border-radius:30% 70% 62% 38%/48% 56% 44% 52%}75%{border-radius:45% 55% 30% 70%/60% 35% 65% 40%}100%{border-radius:38% 62% 55% 45%/42% 58% 42% 58%}}
 @media(prefers-reduced-motion:reduce){.shp{animation:none!important}}
+.boot{display:grid;place-items:center;min-height:70vh}
+.wheel{width:44px;height:44px;border-radius:50%;border:5px solid var(--primary-c);border-top-color:var(--primary);animation:spin .9s linear infinite}
 /* Sections */
 .sec{margin:34px 4px 14px;font-size:22px;font-weight:700;letter-spacing:-.005em;display:flex;align-items:center;gap:10px}
 .sec small{font:600 13px var(--font);color:var(--on-var);background:var(--surf-high);border-radius:10px;padding:2px 10px}
@@ -135,10 +141,19 @@ input[type=password]:focus,input[type=text]:focus,textarea:focus,select:focus{ou
 .foot{display:flex;gap:8px;margin-top:10px;align-items:center}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 @media(max-width:560px){.hero{padding:26px 20px;border-radius:32px}.fab span.lbl{display:none}.fab{padding:0 20px}}
-</style></head><body><main id="app"></main>
+</style><link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Services Hub">
+<script src="/pwa.js" defer></script>
+</head><body><main id="app"><div class="boot"><div class="wheel" role="status" aria-label="Loading"></div></div></main>
+<button class="btn theme qr" id="qrbtn" aria-label="Show QR code" title="QR code for this page" hidden><svg viewBox="0 0 24 24"><path fill-rule="evenodd" d="M3 3h8v8H3zm2 2v4h4V5zM13 3h8v8h-8zm2 2v4h4V5zM3 13h8v8H3zm2 2v4h4v-4zM13 13h3v3h-3zM18 13h3v3h-3zM13 18h3v3h-3zM18 18h3v3h-3z"/></svg></button>
 <button class="btn theme lo" id="logout" aria-label="Sign out" title="Sign out" hidden><svg viewBox="0 0 24 24"><path d="M10 4H5v16h5v-2H7V6h3zm5.6 3.6L14.2 9l2 2H9v2h7.2l-2 2 1.400 1.400L20 12z"/></svg></button>
 <button class="btn theme" id="theme" aria-label="Toggle light/dark mode" title="Toggle light/dark mode"></button>
 <button class="btn fab" id="add"><span class="plus">+</span><span class="lbl">Add site</span></button>
+<dialog id="qrdlg"><h3 style="text-align:center;margin:0">Scan to open the hub</h3>
+<div class="qrbox" id="qrbox"></div><div class="qrurl" id="qrurl"></div>
+<div class="foot" style="justify-content:center;margin-top:14px"><button type="button" class="btn sm" id="qrcopy">Copy link</button><button type="button" class="btn fill sm" id="qrclose">Close</button></div></dialog>
 <dialog id="dlg"><form id="form" method="dialog">
 <h3 id="dtitle"></h3>
 <label class="field"><span>Name</span><input type="text" id="f-name" required></label>
@@ -158,8 +173,9 @@ input[type=password]:focus,input[type=text]:focus,textarea:focus,select:focus{ou
 <div class="errmsg" id="err"></div>
 <div class="foot"><button type="button" id="del" class="btn err sm">Delete</button><span class="sp"></span><button type="button" id="cancel" class="btn sm">Cancel</button><button class="btn fill sm" id="save">Save</button></div>
 </form></dialog>
+<script src="/vendor/qrcode.min.js"></script>
 <script>
-const $=s=>document.querySelector(s), app=$('#app'), dlg=$('#dlg');
+const $=s=>document.querySelector(s), app=$('#app'), dlg=$('#dlg'), qrdlg=$('#qrdlg');
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const href=u=>u.replace('{host}',location.hostname);
 let services=[], editing=null;
@@ -172,7 +188,7 @@ const LOGO='<img src="/icons/hub.svg" alt="">';
 const BG='<div class="authbg" aria-hidden="true"><div class="shp a"></div><div class="shp b"></div><div class="shp c"></div><div class="shp g"></div></div>';
 async function showAuth(){
   const st=await api('GET','/api/auth/status'), setup=st.setup;
-  $('#add').hidden=true; $('#logout').hidden=true; services=[]; lastKey=null;
+  $('#add').hidden=true; $('#logout').hidden=true; $('#qrbtn').hidden=true; services=[]; lastKey=null;
   if(!document.querySelector('.authbg')) document.body.insertAdjacentHTML('afterbegin',BG);
   app.innerHTML=`<form class="authcard" id="authform">${LOGO}<h1>Services Hub</h1>
   <p>${setup?'Create a password. You will sign in once here and the hub signs you in to the other services.':'Sign in once to open every service.'}</p>
@@ -186,6 +202,21 @@ async function showAuth(){
     catch(x){$('#a-err').textContent=x.message;}
   };
 }
+// QR code of the hub's apps page. A phone can't reach "localhost", so then use the machine's LAN address.
+async function hubLink(){
+  const local=/^(localhost|127\.|\[?::1)/.test(location.hostname);
+  if(local){ try{ const i=await api('GET','/api/info'); if(i.lanUrl) return i.lanUrl; }catch{} }
+  return location.origin+'/apps';
+}
+$('#qrbtn').onclick=async()=>{
+  const url=await hubLink(), q=qrcode(0,'M'); q.addData(url); q.make();
+  const n=q.getModuleCount(), m=2; let d='';
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++) if(q.isDark(r,c)) d+=`M${c+m} ${r+m}h1v1h-1z`;
+  $('#qrbox').innerHTML=`<svg viewBox="0 0 ${n+2*m} ${n+2*m}" shape-rendering="crispEdges" role="img" aria-label="QR code for ${esc(url)}"><path d="${d}" fill="#111"/></svg>`;
+  $('#qrurl').textContent=url; qrdlg.showModal();
+};
+$('#qrclose').onclick=()=>qrdlg.close();
+$('#qrcopy').onclick=async()=>{try{await navigator.clipboard.writeText($('#qrurl').textContent); $('#qrcopy').textContent='Copied';}catch{} setTimeout(()=>$('#qrcopy').textContent='Copy link',1500);};
 $('#logout').onclick=async()=>{await api('POST','/api/auth/logout'); showAuth();};
 let lastKey=null;
 const keyOf=l=>JSON.stringify(l.map(({up,...x})=>x));
@@ -196,7 +227,7 @@ function patchStatus(){
 }
 async function load(){
   let data; try{data=await api('GET','/api/services');}catch(e){if(e.message==='login required')return; throw e;}
-  $('#add').hidden=false; $('#logout').hidden=false; document.querySelector('.authbg')?.remove();
+  $('#add').hidden=false; $('#logout').hidden=false; $('#qrbtn').hidden=false; document.querySelector('.authbg')?.remove();
   const k=keyOf(data);
   services=data;
   // Same content as before: update status badges in place, no re-render (no flash)

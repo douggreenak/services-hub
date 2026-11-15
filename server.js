@@ -1,12 +1,13 @@
 // Services Hub: link directory with a single login that signs you in to the other services.
-const http = require('http'), fs = require('fs'), path = require('path'), net = require('net'), crypto = require('crypto');
+const os = require('os'), http = require('http'), fs = require('fs'), path = require('path'), net = require('net'), crypto = require('crypto');
 const PORT = +process.env.PORT || 8090;
 const DIR = process.env.HUB_DATA_DIR || __dirname; // where services.json, auth.json and vault.json live
 const DATA = path.join(DIR, 'services.json');
 const AUTH = path.join(DIR, 'auth.json');     // password verifier (scrypt) - gitignored
+const SESS = path.join(DIR, 'sessions.json');   // signed-in browsers (hashed) + the vault key, so logins survive restarts - gitignored
 const VAULT = path.join(DIR, 'vault.json');   // service passwords, AES-256-GCM encrypted - gitignored
 const PUB = path.join(__dirname, 'public');
-const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml' };
+const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.json': 'application/manifest+json' };
 
 /* ---------- storage ---------- */
 const readJSON = (f, d) => { try { return JSON.parse(fs.readFileSync(f, 'utf8')); } catch { return d; } };
@@ -43,13 +44,23 @@ function vaultWrite(obj) {
   writeJSON(VAULT, { iv: iv.toString('hex'), tag: c.getAuthTag().toString('hex'), data: data.toString('hex') }, 0o600);
 }
 
-/* ---------- sessions + login throttle ---------- */
-const sessions = new Map(); // token -> expiry (memory only: a restart signs everyone out)
-const SESSION_MS = 30 * 864e5;
-const newSession = () => { const t = crypto.randomBytes(32).toString('hex'); sessions.set(t, Date.now() + SESSION_MS); return t; };
+/* ---------- sessions (kept until the user signs out) + login throttle ---------- */
+// A signed-in browser stays signed in forever, across restarts and reboots. Only a SHA-256 of each session
+// token is stored. So the saved service logins can still be decrypted after a restart, the vault key is kept
+// in sessions.json (0600) for as long as at least one browser is signed in; the last sign-out removes it.
+const sha256 = t => crypto.createHash('sha256').update(t).digest('hex');
+const sessions = new Map(Object.entries(readJSON(SESS, { sessions: {} }).sessions)); // sha256(token) -> created
+{ const k = readJSON(SESS, {}).key; if (k && sessions.size) vaultKey = Buffer.from(k, 'hex'); }
+const persistSessions = () => {
+  if (!sessions.size) { try { fs.unlinkSync(SESS); } catch {} return; }
+  writeJSON(SESS, { sessions: Object.fromEntries(sessions), key: vaultKey ? vaultKey.toString('hex') : undefined }, 0o600);
+};
+const newSession = () => { const t = crypto.randomBytes(32).toString('hex'); sessions.set(sha256(t), Date.now()); persistSessions(); return t; };
+const dropSession = t => { if (t && sessions.delete(sha256(t))) persistSessions(); };
 const cookieOf = (req, name) => { const m = (req.headers.cookie || '').match(new RegExp('(?:^|; )' + name + '=([^;]*)')); return m ? m[1] : null; };
-const authed = req => { const t = cookieOf(req, 'hub_session'); const e = t && sessions.get(t); if (e && e > Date.now()) return true; if (t) sessions.delete(t); return false; };
-const sessionCookie = t => `hub_session=${t}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${SESSION_MS / 1000}`;
+const authed = req => { const t = cookieOf(req, 'hub_session'); return !!t && sessions.has(sha256(t)); };
+const SESSION_SECS = 400 * 86400; // browsers cap cookie life at 400 days, so every visit renews it: effectively forever
+const sessionCookie = t => `hub_session=${t}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${SESSION_SECS}`;
 const fails = new Map();
 const locked = ip => (fails.get(ip)?.until || 0) > Date.now();
 const noteFail = ip => { const f = fails.get(ip) || { n: 0 }; f.n++; if (f.n >= 5) { f.until = Date.now() + 60000; f.n = 0; } fails.set(ip, f); };
@@ -157,7 +168,10 @@ http.createServer(async (req, res) => {
     const p = new URL(req.url, 'http://x').pathname;
     const ip = ipOf(req);
 
-    if (p === '/api/auth/status') return send(res, 200, { setup: !fs.existsSync(AUTH), authed: authed(req) });
+    if (p === '/api/auth/status') {
+      const ok = authed(req); // the page asks this on every load: renew the cookie so an active browser never expires
+      return send(res, 200, { setup: !fs.existsSync(AUTH), authed: ok }, ok ? { 'Set-Cookie': sessionCookie(cookieOf(req, 'hub_session')) } : undefined);
+    }
     if (p === '/api/auth/setup' && req.method === 'POST') {
       if (fs.existsSync(AUTH)) return send(res, 409, { error: 'A password is already set' });
       const pw = String((await body(req)).password || '');
@@ -173,11 +187,11 @@ http.createServer(async (req, res) => {
       return send(res, 200, { ok: true }, { 'Set-Cookie': sessionCookie(newSession()) });
     }
     if (p === '/api/auth/logout' && req.method === 'POST') {
-      const t = cookieOf(req, 'hub_session'); if (t) sessions.delete(t);
+      dropSession(cookieOf(req, 'hub_session'));
       return send(res, 200, { ok: true }, { 'Set-Cookie': 'hub_session=; HttpOnly; Path=/; Max-Age=0' });
     }
 
-    if (p === '/logout') { const t = cookieOf(req, 'hub_session'); if (t) sessions.delete(t); res.writeHead(302, { Location: '/', 'Set-Cookie': 'hub_session=; HttpOnly; Path=/; Max-Age=0' }); return res.end(); }
+    if (p === '/logout') { dropSession(cookieOf(req, 'hub_session')); res.writeHead(302, { Location: '/', 'Set-Cookie': 'hub_session=; HttpOnly; Path=/; Max-Age=0' }); return res.end(); }
     const gl = p.match(/^\/go\/([\w-]+)\/login$/);
     if (gl && req.method === 'POST') return goLogin(req, res, gl[1]);
     const g = p.match(/^\/go\/([\w-]+)$/);
@@ -187,6 +201,10 @@ http.createServer(async (req, res) => {
       if (!authed(req)) return send(res, 401, { error: 'login required' });
       if (!vaultKey) return send(res, 401, { error: 'login required' }); // e.g. server restarted
       const vault = vaultRead();
+      if (p === '/api/info') {
+        const ip = Object.values(os.networkInterfaces()).flat().find(i => i && i.family === 'IPv4' && !i.internal)?.address;
+        return send(res, 200, { lanUrl: ip ? `http://${ip}:${PORT}/apps` : null });
+      }
       if (p === '/api/services' && req.method === 'GET') {
         return send(res, 200, await Promise.all(load().map(async s => ({ ...pub(s, vault), up: await probe(s.url) }))));
       }
@@ -219,7 +237,7 @@ http.createServer(async (req, res) => {
     let file = p === '/' || p.startsWith('/apps') ? 'index.html' : path.normalize(p).replace(/^(\.\.[\/\\])+/, '');
     const full = path.join(PUB, file);
     if (!full.startsWith(PUB) || !fs.existsSync(full) || !fs.statSync(full).isFile()) { res.writeHead(404); return res.end('Not found'); }
-    res.writeHead(200, { 'Content-Type': types[path.extname(full)] || 'application/octet-stream' });
+    res.writeHead(200, { 'Content-Type': types[path.extname(full)] || 'application/octet-stream', ...(file === 'sw.js' ? { 'Cache-Control': 'no-cache' } : {}) });
     fs.createReadStream(full).pipe(res);
   } catch (e) { send(res, 500, { error: String(e.message || e) }); }
 }).listen(PORT, '0.0.0.0', () => console.log('Services Hub on :' + PORT));

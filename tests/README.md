@@ -24,7 +24,8 @@ default `~/pwtest/node_modules/playwright-core`). A full run takes about 3.5 min
 - Redirect-loop guard, service down, plain service with no login
 - **Hub itself:** first-run setup and password rules, API needs a session, lockout after 5 bad tries,
   `?next=` open-redirect protection, saved passwords encrypted at rest (0600, never returned by the API),
-  restart behaviour, HTML escaping, sign-out, the Edit dialog
+  logins that last forever (survive restarts; only sign-out ends them), the QR-code button, HTML escaping,
+  sign-out, the Edit dialog
 
 Test-only hooks in the services' `sso.js`: `window.__HUB_ORIGIN__` (hub URL) and
 `window.__HUB_GUARD_MS__` (loop-guard window). Production uses the defaults.
