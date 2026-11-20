@@ -30,3 +30,11 @@ default `~/pwtest/node_modules/playwright-core`). A full run takes about 3.5 min
 
 Test-only hooks in the services' `sso.js`: `window.__HUB_ORIGIN__` (hub URL) and
 `window.__HUB_GUARD_MS__` (loop-guard window). Production uses the defaults.
+
+## Updates
+
+`tests/updates.test.js` covers the update checker with throwaway git repos (a bare "GitHub" plus a checkout per app):
+current / behind / ahead / diverged / blocked-by-local-edits / unreachable remote, fast-forward + only the build steps whose
+files changed, rollback when a step or the health check fails (local edits are never discarded), 404 for unknown apps, and
+the Updates panel. Per-app recipes (what to rebuild and restart) live in `updates.json`, read from disk only. The e2e stack
+points `HUB_UPDATES_FILE` at an empty file so tests never touch the real apps.

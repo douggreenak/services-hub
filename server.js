@@ -9,6 +9,8 @@ const VAULT = path.join(DIR, 'vault.json');   // service passwords, AES-256-GCM 
 const PUB = path.join(__dirname, 'public');
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.json': 'application/manifest+json' };
 
+const updates = require('./updates');
+
 /* ---------- storage ---------- */
 const readJSON = (f, d) => { try { return JSON.parse(fs.readFileSync(f, 'utf8')); } catch { return d; } };
 const writeJSON = (f, o, mode) => { fs.writeFileSync(f + '.tmp', JSON.stringify(o, null, 2), { mode }); fs.renameSync(f + '.tmp', f); };
@@ -205,6 +207,11 @@ http.createServer(async (req, res) => {
         const ip = Object.values(os.networkInterfaces()).flat().find(i => i && i.family === 'IPv4' && !i.internal)?.address;
         return send(res, 200, { lanUrl: ip ? `http://${ip}:${PORT}/apps` : null });
       }
+      if (p === '/api/updates' && req.method === 'GET') { if (updates.stale() && !updates.running()) updates.checkAll(); return send(res, 200, updates.view()); }
+      if (p === '/api/updates/check' && req.method === 'POST') { await updates.checkAll(); return send(res, 200, updates.view()); }
+      if (p === '/api/updates/run-all' && req.method === 'POST') { updates.runAll(); return send(res, 202, { ok: true }); }
+      const um = p.match(/^\/api\/updates\/([\w-]+)\/run$/);
+      if (um && req.method === 'POST') { try { await updates.run(um[1]); return send(res, 202, { ok: true }); } catch (e) { return send(res, 404, { error: e.message }); } }
       if (p === '/api/services' && req.method === 'GET') {
         return send(res, 200, await Promise.all(load().map(async s => ({ ...pub(s, vault), up: await probe(s.url) }))));
       }
@@ -240,4 +247,4 @@ http.createServer(async (req, res) => {
     res.writeHead(200, { 'Content-Type': types[path.extname(full)] || 'application/octet-stream', ...(file === 'sw.js' ? { 'Cache-Control': 'no-cache' } : {}) });
     fs.createReadStream(full).pipe(res);
   } catch (e) { send(res, 500, { error: String(e.message || e) }); }
-}).listen(PORT, '0.0.0.0', () => console.log('Services Hub on :' + PORT));
+}).listen(PORT, '0.0.0.0', () => { console.log('Services Hub on :' + PORT); updates.start(); });

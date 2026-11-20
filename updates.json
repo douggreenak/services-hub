@@ -1,0 +1,52 @@
+[
+  {
+    "id": "tv-manager", "name": "TV Manager", "icon": "/icons/tv-manager.svg",
+    "dir": "/home/jellyfin/tv-adb-manager",
+    "steps": [],
+    "restart": "sudo -n systemctl restart tv-adb-manager",
+    "health": "http://localhost:8420/"
+  },
+  {
+    "id": "jellyfin-fleet", "name": "Jellyfin Fleet", "icon": "/icons/jellyfin-fleet.svg",
+    "dir": "/home/jellyfin/apps/Jellyfin-Apple-TV",
+    "steps": [
+      { "label": "Rebuild the API server image", "when": "^management-server/server/|^management-server/docker-compose", "run": "cd management-server && docker compose build server && docker compose up -d --no-deps server" },
+      { "label": "Rebuild the admin UI image", "when": "^management-server/admin/|^management-server/docker-compose", "run": "cd management-server && docker compose build admin && docker compose up -d --no-deps admin" }
+    ],
+    "health": "http://localhost:8080/"
+  },
+  {
+    "id": "audio-flow", "name": "Audio Flow Console", "icon": "/icons/audio-flow.svg",
+    "dir": "/home/jellyfin/signage-dashboard",
+    "steps": [
+      { "label": "Install dependencies", "when": "^package(-lock)?\\.json$", "run": "npm ci --omit=dev --no-audit --no-fund" }
+    ],
+    "restart": "systemctl --user restart signage-dashboard",
+    "health": "http://localhost:8088/"
+  },
+  {
+    "id": "bethel-checklist", "name": "Bethel Tech Checklist", "icon": "/icons/bethel-checklist.svg",
+    "dir": "/home/jellyfin/Bethel-Tech-Checklist",
+    "steps": [
+      { "label": "Install dependencies", "when": "^package(-lock)?\\.json$", "run": "npm ci --no-audit --no-fund" },
+      { "label": "Build the app", "run": "set -a; . ./.env.local; set +a; NODE_ENV=production node node_modules/next/dist/bin/next build" }
+    ],
+    "restart": "sudo -n systemctl restart bethel-checklist",
+    "health": "http://localhost:8091/"
+  },
+  {
+    "id": "brightsign", "name": "BrightSign Status", "icon": "/icons/brightsign.svg",
+    "dir": "/home/jellyfin/BC_Tech",
+    "steps": [
+      { "label": "Install the status page generator", "when": "brightsign_feed/files/brightsign-generate-feed\\.py$", "run": "sudo -n install -m 755 jellyfin-server/ansible/roles/brightsign_feed/files/brightsign-generate-feed.py /usr/local/bin/brightsign-generate-feed.py" }
+    ],
+    "health": "http://localhost/brightsign/status.html"
+  },
+  {
+    "id": "services-hub", "name": "Services Hub", "icon": "/icons/hub.svg", "self": true,
+    "dir": "/home/jellyfin/services-hub",
+    "steps": [
+      { "label": "Check the new code parses", "run": "node --check server.js" }
+    ]
+  }
+]

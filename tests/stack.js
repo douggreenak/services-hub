@@ -51,12 +51,12 @@ exports.freshHub = async function () {
   await stopHub();
   fs.rmSync(tmp + '/hub', { recursive: true, force: true }); fs.mkdirSync(tmp + '/hub');
   fs.writeFileSync(tmp + '/hub/services.json', JSON.stringify(services()));
-  hub = spawn('node', [path.join(__dirname, '..', 'server.js')], { stdio: 'ignore', env: { ...process.env, PORT: String(P.hub), HUB_DATA_DIR: tmp + '/hub' } });
+  hub = spawn('node', [path.join(__dirname, '..', 'server.js')], { stdio: 'ignore', env: { ...process.env, PORT: String(P.hub), HUB_DATA_DIR: tmp + '/hub', HUB_UPDATES_FILE: tmp + '/none.json' } });
   procs.push(hub);
   await waitHttp(`http://localhost:${P.hub}/api/auth/status`);
 };
 exports.restartHub = async function () { await stopHub();
-  hub = spawn('node', [path.join(__dirname, '..', 'server.js')], { stdio: 'ignore', env: { ...process.env, PORT: String(P.hub), HUB_DATA_DIR: tmp + '/hub' } });
+  hub = spawn('node', [path.join(__dirname, '..', 'server.js')], { stdio: 'ignore', env: { ...process.env, PORT: String(P.hub), HUB_DATA_DIR: tmp + '/hub', HUB_UPDATES_FILE: tmp + '/none.json' } });
   procs.push(hub); await waitHttp(`http://localhost:${P.hub}/api/auth/status`); };
 exports.hubDir = () => tmp + '/hub';
 exports.stopService = k => { const i = { mockc: 0 }; /* only mockc is stoppable */ };

@@ -64,6 +64,15 @@ a{color:inherit}
 .theme svg{width:22px;height:22px;fill:currentColor}
 .theme.lo{right:76px}
 .theme.qr{right:136px}
+.theme.upd{right:196px}.theme.upd .dot{position:absolute;top:8px;right:8px;width:12px;height:12px;border-radius:50%;background:var(--tertiary-c);border:2px solid var(--surf-high)}
+.theme.upd .dot[hidden]{display:none}
+#upddlg{width:min(620px,94vw)}.urow{display:flex;gap:12px;align-items:center;padding:12px 0;border-top:1px solid var(--outline-v,#8883)}
+.urow:first-of-type{border-top:0}.urow img{width:36px;height:36px;border-radius:50%;flex:none}.urow .m{flex:1;min-width:0}
+.urow b{display:block;font-size:15px}.urow small{display:block;color:var(--on-var);font-size:12.5px;overflow-wrap:anywhere}
+.ust{font-size:12px;font-weight:700;padding:3px 10px;border-radius:8px;background:var(--surface);white-space:nowrap}
+.ust.ok{background:var(--ok-c);color:var(--ok)}.ust.new{background:var(--tertiary-c);color:var(--on-tertiary-c)}.ust.bad{background:var(--bad-c);color:var(--on-bad-c)}
+.ulog{margin:8px 0 0;padding:10px 12px;border-radius:14px;background:var(--surface);font:12px/1.5 ui-monospace,monospace;white-space:pre-wrap;max-height:160px;overflow:auto}
+.ucommits{margin:6px 0 0;padding-left:18px;font-size:12.5px;color:var(--on-var)}
 .qrbox{background:#fff;border-radius:24px;padding:14px;margin:16px auto 8px;width:min(300px,80vw);aspect-ratio:1}
 .qrbox svg{display:block;width:100%;height:100%}
 .qrurl{text-align:center;font-size:13px;color:var(--on-var);word-break:break-all;margin:6px 0 4px}
@@ -147,10 +156,14 @@ input[type=password]:focus,input[type=text]:focus,textarea:focus,select:focus{ou
 <meta name="apple-mobile-web-app-title" content="Services Hub">
 <script src="/pwa.js" defer></script>
 </head><body><main id="app"><div class="boot"><div class="wheel" role="status" aria-label="Loading"></div></div></main>
+<button class="btn theme upd" id="updbtn" aria-label="Check for updates" title="Updates" hidden><svg viewBox="0 0 24 24"><path d="M12 4v10.2l3.600-3.600L17 12l-5 5-5-5 1.400-1.400L11 14.200V4zM5 18h14v2H5z"/></svg><span class="dot" id="upddot" hidden></span></button>
 <button class="btn theme qr" id="qrbtn" aria-label="Show QR code" title="QR code for this page" hidden><svg viewBox="0 0 24 24"><path fill-rule="evenodd" d="M3 3h8v8H3zm2 2v4h4V5zM13 3h8v8h-8zm2 2v4h4V5zM3 13h8v8H3zm2 2v4h4v-4zM13 13h3v3h-3zM18 13h3v3h-3zM13 18h3v3h-3zM18 18h3v3h-3z"/></svg></button>
 <button class="btn theme lo" id="logout" aria-label="Sign out" title="Sign out" hidden><svg viewBox="0 0 24 24"><path d="M10 4H5v16h5v-2H7V6h3zm5.6 3.6L14.2 9l2 2H9v2h7.2l-2 2 1.400 1.400L20 12z"/></svg></button>
 <button class="btn theme" id="theme" aria-label="Toggle light/dark mode" title="Toggle light/dark mode"></button>
 <button class="btn fab" id="add"><span class="plus">+</span><span class="lbl">Add site</span></button>
+<dialog id="upddlg"><h3>Updates</h3><div class="hint" id="updsub" style="margin-bottom:8px">Compares each app with GitHub.</div>
+<div id="updlist"></div>
+<div class="foot" style="margin-top:14px"><button type="button" class="btn sm" id="updcheck">Check now</button><span class="sp"></span><button type="button" class="btn tonal sm" id="updall" hidden>Update all</button><button type="button" class="btn fill sm" id="updclose">Close</button></div></dialog>
 <dialog id="qrdlg"><h3 style="text-align:center;margin:0">Scan to open the hub</h3>
 <div class="qrbox" id="qrbox"></div><div class="qrurl" id="qrurl"></div>
 <div class="foot" style="justify-content:center;margin-top:14px"><button type="button" class="btn sm" id="qrcopy">Copy link</button><button type="button" class="btn fill sm" id="qrclose">Close</button></div></dialog>
@@ -188,7 +201,7 @@ const LOGO='<img src="/icons/hub.svg" alt="">';
 const BG='<div class="authbg" aria-hidden="true"><div class="shp a"></div><div class="shp b"></div><div class="shp c"></div><div class="shp g"></div></div>';
 async function showAuth(){
   const st=await api('GET','/api/auth/status'), setup=st.setup;
-  $('#add').hidden=true; $('#logout').hidden=true; $('#qrbtn').hidden=true; services=[]; lastKey=null;
+  $('#add').hidden=true; $('#logout').hidden=true; $('#qrbtn').hidden=true; $('#updbtn').hidden=true; clearTimeout(updTimer); updTimer=0; services=[]; lastKey=null;
   if(!document.querySelector('.authbg')) document.body.insertAdjacentHTML('afterbegin',BG);
   app.innerHTML=`<form class="authcard" id="authform">${LOGO}<h1>Services Hub</h1>
   <p>${setup?'Create a password. You will sign in once here and the hub signs you in to the other services.':'Sign in once to open every service.'}</p>
@@ -227,7 +240,7 @@ function patchStatus(){
 }
 async function load(){
   let data; try{data=await api('GET','/api/services');}catch(e){if(e.message==='login required')return; throw e;}
-  $('#add').hidden=false; $('#logout').hidden=false; $('#qrbtn').hidden=false; document.querySelector('.authbg')?.remove();
+  $('#add').hidden=false; $('#logout').hidden=false; $('#updbtn').hidden=false; if(!updTimer) updRefresh(); $('#qrbtn').hidden=false; document.querySelector('.authbg')?.remove();
   const k=keyOf(data);
   services=data;
   // Same content as before: update status badges in place, no re-render (no flash)
@@ -311,5 +324,33 @@ const qp=new URLSearchParams(location.search);
 const nextUrl=()=>{const n=qp.get('next'); return n&&/^\/go\/[\w-]+(\?sso=1)?$/.test(n)?n:null}; // same-site /go paths only
 api('GET','/api/auth/status').then(st=>{ if(st.authed&&nextUrl()) return location.replace(nextUrl()); return st.authed?load().then(openFromQuery):showAuth(); });
 function openFromQuery(){const e=qp.get('edit'); if(e){const s=services.find(x=>x.id===e); if(s) openDlg(s); history.replaceState(null,'','/');}}
+/* ---- updates ---- */
+var updTimer=0,upd=[];
+const ago=t=>{const m=Math.round((Date.now()-t)/60000);return m<1?'just now':m<60?m+' min ago':Math.round(m/60)+' h ago'};
+async function updRefresh(){
+  try{upd=await api('GET','/api/updates');}catch(e){return;}
+  const n=upd.filter(u=>u.status==='behind').length, busy=upd.some(u=>u.job?.state==='running');
+  $('#upddot').hidden=!n; $('#updbtn').title=n?n+' update'+(n>1?'s':'')+' available':'Updates';
+  if($('#upddlg').open) updDraw();
+  clearTimeout(updTimer); updTimer=setTimeout(updRefresh,busy?1500:$('#upddlg').open?5000:60000);
+}
+function updDraw(){
+  const n=upd.filter(u=>u.status==='behind').length, busy=upd.some(u=>u.job?.state==='running');
+  const t=Math.min(...upd.map(u=>u.checkedAt||Date.now()));
+  $('#updsub').textContent=!upd.length?'Nothing to check.':!upd.some(u=>u.checkedAt)?'Checking GitHub…':n?n+' update'+(n>1?'s':'')+' available · checked '+ago(t):'Everything is up to date · checked '+ago(t);
+  $('#updall').hidden=n<2||busy; $('#updcheck').disabled=busy;
+  const st=u=>u.job?.state==='running'?['new','Updating…']:u.status==='current'?['ok','Up to date']:u.status==='behind'?['new',u.behind+' new']:u.status==='unknown'?['','Checking…']:u.status==='ahead'?['','Ahead of GitHub']:['bad',u.status==='blocked'?'Can’t update':u.status==='diverged'?'Needs a merge':'Check failed'];
+  $('#updlist').innerHTML=upd.map(u=>{const [c,l]=st(u),j=u.job,log=j&&(j.state==='running'||j.state==='failed'||Date.now()-j.finished<120000)?j.log.join('\n'):'';
+    return `<div class="urow" style="flex-wrap:wrap">${u.icon?`<img src="${esc(href(u.icon))}" alt="">`:''}<div class="m"><b>${esc(u.name)}</b>
+    <small>${u.repo?esc(u.repo)+' · ':''}${u.local?esc(u.local)+(u.behind?' → '+esc(u.remote):''):''}${u.message?' — '+esc(u.message):''}</small></div>
+    <span class="ust ${c}">${l}</span>${u.status==='behind'&&!busy?`<button class="btn fill sm" data-upd="${esc(u.id)}">Update</button>`:''}
+    ${u.status==='behind'&&!log&&u.commits?.length?`<ul class="ucommits" style="flex-basis:100%">${u.commits.map(x=>`<li>${esc(x.subject)}</li>`).join('')}${u.behind>u.commits.length?'<li>…and more</li>':''}</ul>`:''}
+    ${log?`<div class="ulog" style="flex-basis:100%">${esc(log)}</div>`:''}</div>`}).join('');
+  document.querySelectorAll('[data-upd]').forEach(b=>b.onclick=async()=>{b.disabled=true;try{await api('POST','/api/updates/'+b.dataset.upd+'/run');}catch(e){}updRefresh();});
+}
+$('#updbtn').onclick=()=>{$('#upddlg').showModal();updDraw();updRefresh();};
+$('#updclose').onclick=()=>$('#upddlg').close();
+$('#updcheck').onclick=async()=>{$('#updcheck').disabled=true;$('#updsub').textContent='Checking GitHub…';try{upd=await api('POST','/api/updates/check');}catch(e){}updRefresh();updDraw();};
+$('#updall').onclick=async()=>{try{await api('POST','/api/updates/run-all');}catch(e){}setTimeout(updRefresh,300);};
 setInterval(()=>{if(!dlg.open&&!$('#authform'))load()},15000);
 </script></body></html>
